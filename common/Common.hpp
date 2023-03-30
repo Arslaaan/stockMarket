@@ -1,5 +1,4 @@
-#ifndef CLIENSERVERECN_COMMON_HPP
-#define CLIENSERVERECN_COMMON_HPP
+#pragma once
 
 #include <string>
 
@@ -10,5 +9,3 @@ namespace Requests
     static std::string Registration = "Reg";
     static std::string Hello = "Hel";
 }
-
-#endif //CLIENSERVERECN_COMMON_HPP
