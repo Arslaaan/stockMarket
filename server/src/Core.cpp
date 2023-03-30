@@ -1,7 +1,6 @@
 #include "Core.h"
 
-std::string Core::RegisterNewUser(const std::string &aUserName)
-{
+std::string Core::RegisterNewUser(const std::string &aUserName) {
     size_t newUserId = mUsers.size();
     mUsers[newUserId] = aUserName;
 
@@ -9,21 +8,16 @@ std::string Core::RegisterNewUser(const std::string &aUserName)
 }
 
 // Запрос имени клиента по ID
-std::string Core::GetUserName(const std::string &aUserId)
-{
+std::string Core::GetUserName(const std::string &aUserId) {
     const auto userIt = mUsers.find(std::stoi(aUserId));
-    if (userIt == mUsers.cend())
-    {
+    if (userIt == mUsers.cend()) {
         return "Error! Unknown User";
-    }
-    else
-    {
+    } else {
         return userIt->second;
     }
 }
 
-Core& GetCore()
-{
+Core &GetCore() {
     static Core core;
     return core;
 }

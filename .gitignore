@@ -108,3 +108,6 @@ build/CMakeFiles/ServerRun.dir/server/src/Session.cpp.o.d
 .gitignore
 .vscode/settings.json
 .vscode/tasks.json
+build/CMakeFiles/ClientRun.dir/client/clientRun.cpp.o
+build/CMakeFiles/ClientRun.dir/client/clientRun.cpp.o.d
+build/CMakeFiles/ServerRun.dir/compiler_depend.internal
