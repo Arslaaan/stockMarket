@@ -23,11 +23,11 @@ INCLUDE_DIRECTORIES(${CLIENT}/src)
 ADD_EXECUTABLE(
     ServerRun
 
-    ${BACKEND_SERVER}/include/BackendServer.h
+    ${BACKEND_SERVER}/include/Server.h
     ${BACKEND_SERVER}/include/Core.h
     ${BACKEND_SERVER}/include/Session.h
 
-    ${BACKEND_SERVER}/src/BackendServer.cpp 
+    ${BACKEND_SERVER}/src/Server.cpp 
     ${BACKEND_SERVER}/src/Core.cpp 
     ${BACKEND_SERVER}/src/Session.cpp
     ${BACKEND_SERVER}/serverRun.cpp
