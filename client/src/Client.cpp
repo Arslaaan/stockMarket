@@ -6,11 +6,7 @@ Client::Client(boost::asio::io_service &io_service) : aSocket(io_service) {}
 
 
 // "Создаём" пользователя, получаем его ID.
-void Client::processRegistration() {
-    std::string name;
-    std::cout << "Hello! Enter your name: ";
-    std::cin >> name;
-
+void Client::processRegistration(const std::string& name) {
     // Для регистрации Id не нужен, заполним его нулём
     SendMessage(Requests::Registration, name);
     id = ReadMessage();
