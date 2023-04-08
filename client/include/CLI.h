@@ -6,94 +6,129 @@
 
 #include "Client.h"
 
-namespace CLI {
-enum Commands { CONNECT, BUY, SELL, HELP, EXIT };
 struct HelpInfo {
     std::string description;
     std::string usage;
 };
-static std::unordered_map<std::string, Commands> const commandTable = {
-    {"connect", CONNECT},
-    {"buy", BUY},
-    {"sell", SELL},
-    {"help", HELP},
-    {"exit", EXIT}};
 
-static std::unordered_map<Commands, HelpInfo> const helpTable = {
-    {CONNECT, {"Log in to server with name ${USER}", "connect -u user"}},
-    {BUY,
-     {"Buy ${AMOUNT_1[type int]} USD where each costs ${AMOUNT_2[type double]} "
-      "RUB.",
-      "buy 5 70.50"}},
-    {SELL,
-     {"Sell ${AMOUNT_1[type int]} USD where each costs ${AMOUNT_2[type "
-      "double]} RUB.",
-      "sell 5 70.50"}},
-    {HELP, {"Shows help for every command", "help"}},
-    {EXIT, {"Exit client", "exit"}},
-};
+class CLI {
+   public:
+    enum Commands { CONNECT, BUY, SELL, HELP, EXIT };
+    CLI(std::unique_ptr<Client>& client_) : client(client_){};
 
-void Run(std::unique_ptr<Client>& client, const std::string& cmd) {
-    boost::char_separator<char> sep(" ");
-    boost::tokenizer<boost::char_separator<char>> tokens(cmd, sep);
+    void Run(const std::string& cmd) {
+        boost::char_separator<char> sep(" ");
+        boost::tokenizer<boost::char_separator<char>> tokens(cmd, sep);
 
-    auto token = tokens.begin();
-    boost::algorithm::to_lower(*token);
+        auto token = tokens.begin();
+        if (token == tokens.end()) {
+            return;
+        }
+        // boost::algorithm::to_lower(*token);
 
-    switch (commandTable.at(*token)) {
-        case CONNECT: {
-            if (checkSize(CONNECT, tokens)) {
-                if (*(++token) == "-u") {
-                    client->processRegistration(*(++token));
-                    break;
+        switch (commandTable.at(*token)) {
+            case CONNECT: {
+                if (checkSize(CONNECT, tokens)) {
+                    if (*(++token) == "-u") {
+                        client->connect(*(++token));
+                        break;
+                    }
                 }
+                ShowHelp(helpTable.at(CONNECT));
+                break;
             }
-            ShowHelp(helpTable.at(CONNECT));
-            break;
-        }
-        case BUY: {
-            //todo
-            break;
-        }
-        case SELL: {
-            //todo
-            break;
-        }
-        case HELP: {
-            if (checkSize(HELP, tokens)) {
-                ShowHelp();
+            case BUY: {
+                SendTransaction(BUY, tokens);
+                break;
             }
-            break;
-        }
-        case EXIT: {
-            if (checkSize(EXIT, tokens)) {
-                exit(0);
+            case SELL: {
+                SendTransaction(SELL, tokens);
+                break;
             }
-            break;
+            case HELP: {
+                if (checkSize(HELP, tokens)) {
+                    ShowHelp();
+                }
+                ShowHelp(helpTable.at(HELP));
+                break;
+            }
+            case EXIT: {
+                if (checkSize(EXIT, tokens)) {
+                    exit(0);
+                }
+                ShowHelp(helpTable.at(EXIT));
+                break;
+            }
+            default: {
+                std::cout << "Unknown menu option" << std::endl;
+            }
         }
-        default: {
-            std::cout << "Unknown menu option\n" << std::endl;
+    };
+    void ShowHelp() {
+        std::cout << "Here you can see all commands:" << std::endl;
+        for (auto& it : helpTable) {
+            ShowHelp(it.second);
         }
     }
-}
 
-void ShowHelp() {
-    std::cout << "Here you can see all commands:" << std::endl;
-    for (auto& it : helpTable) {
-        ShowHelp(it.second);
+   private:
+    const std::unordered_map<std::string, Commands> commandTable = {
+        {"connect", CONNECT},
+        {"buy", BUY},
+        {"sell", SELL},
+        {"help", HELP},
+        {"exit", EXIT}};
+
+    const std::unordered_map<Commands, HelpInfo> helpTable = {
+        {CONNECT,
+         {"Connect: log in to server with name ${USER}", "connect -u user"}},
+        {BUY,
+         {"Buy: buy ${AMOUNT_INT} USD where each costs ${AMOUNT_DOUBLE} RUB",
+          "buy 5 70.50"}},
+        {SELL,
+         {"Sell: sell ${AMOUNT_INT} USD where each costs ${AMOUNT_DOUBLE} RUB",
+          "sell 5 70.50"}},
+        {HELP, {"Help: Shows help for every command", "help"}},
+        {EXIT, {"Exit: Exit client", "exit"}},
+    };
+
+    void SendTransaction(
+        Commands cmd,
+        const boost::tokenizer<boost::char_separator<char>>& tokens) {
+        if (checkSize(cmd, tokens)) {
+            auto token = tokens.begin();
+            try {
+                std::string amountString = *++token;
+                std::string costString = *++token;
+                int amount = std::stoi(amountString);
+                double cost = std::stod(costString);
+                if (cmd == BUY) {
+                    client->transaction(Requests::Buy, amountString,
+                                        costString);
+                } else {
+                    client->transaction(Requests::Sell, amountString,
+                                        costString);
+                }
+            } catch (const std::exception& e) {
+                std::cout << "Wrong types of numbers" << std::endl;
+                ShowHelp(helpTable.at(cmd));
+            }
+        }
     }
-}
-void ShowHelp(const HelpInfo& helpInfo) {
-    std::cout << "\t" << helpInfo.description << "Usage: " << helpInfo.usage
-              << std::endl;
-}
-bool checkSize(
-    Commands cmd,
-    const boost::tokenizer<boost::char_separator<char>>& tokensActual) {
-    boost::char_separator<char> sep(" ");
-    boost::tokenizer<boost::char_separator<char>> tokensExpected(
-        helpTable.at(cmd).usage, sep);
-    return std::distance(tokensExpected.begin(), tokensExpected.end()) ==
-           std::distance(tokensActual.begin(), tokensActual.end());
-}
+
+    void ShowHelp(const HelpInfo& helpInfo) {
+        std::cout << "\t" << helpInfo.description << "." << std::endl;
+        std::cout << "\t\tUsage: " << helpInfo.usage << std::endl;
+    }
+    bool checkSize(
+        Commands cmd,
+        const boost::tokenizer<boost::char_separator<char>>& tokensActual) {
+        boost::char_separator<char> sep(" ");
+        boost::tokenizer<boost::char_separator<char>> tokensExpected(
+            helpTable.at(cmd).usage, sep);
+        return std::distance(tokensExpected.begin(), tokensExpected.end()) ==
+               std::distance(tokensActual.begin(), tokensActual.end());
+    }
+
+    std::unique_ptr<Client>& client;
 };  // namespace CLI

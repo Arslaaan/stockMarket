@@ -2,6 +2,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
+#include <iostream>
 
 #include "Common.hpp"
 #include "Core.h"

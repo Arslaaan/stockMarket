@@ -26,10 +26,19 @@ ADD_EXECUTABLE(
     ${BACKEND_SERVER}/include/Server.h
     ${BACKEND_SERVER}/include/Core.h
     ${BACKEND_SERVER}/include/Session.h
+    ${BACKEND_SERVER}/include/Order.h
+    ${BACKEND_SERVER}/include/OrderKeeper.h
+    ${BACKEND_SERVER}/include/EqualCostOrders.h
+    ${BACKEND_SERVER}/include/NotificationService.h
 
     ${BACKEND_SERVER}/src/Server.cpp 
     ${BACKEND_SERVER}/src/Core.cpp 
     ${BACKEND_SERVER}/src/Session.cpp
+    ${BACKEND_SERVER}/src/Order.cpp
+    ${BACKEND_SERVER}/src/OrderKeeper.cpp
+    ${BACKEND_SERVER}/src/EqualCostOrders.cpp
+    ${BACKEND_SERVER}/src/NotificationService.cpp
+    
     ${BACKEND_SERVER}/serverRun.cpp
 
     ${COMMON}/Common.hpp
@@ -39,6 +48,9 @@ ADD_EXECUTABLE(
 ADD_EXECUTABLE(
     ClientRun
 
+    ${CLIENT}/include/Client.h
+    ${CLIENT}/src/Client.cpp
+    
     ${CLIENT}/clientRun.cpp
 
     ${COMMON}/Common.hpp
