@@ -19,6 +19,8 @@ class OrderKeeper {
     std::shared_ptr<Order> get(const std::string& uuid);
     //удалить заявку
     void remove(const std::string& uuid);
+    //очистить инфу
+    void clear();
 
    private:
     std::unordered_map<std::string, std::shared_ptr<Order>> orders;

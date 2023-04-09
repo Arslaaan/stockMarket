@@ -36,19 +36,18 @@ std::optional<std::string> Core::getUserId(const std::string &aUserName) {
 void Core::match() {
     while (!buyHeap.empty() && !sellHeap.empty() &&
            (buyHeap.top() - sellHeap.top() >= 0)) {
-        auto &buyOrdersWithMaxCost = buyOrders[buyHeap.top()].get();
-        auto &sellOrdersWithMinCost = sellOrders[sellHeap.top()].get();
-        auto buyOrder = orderKeeper.get(*buyOrdersWithMaxCost.begin());
-        auto sellOrder = orderKeeper.get(*sellOrdersWithMinCost.begin());
+        auto buyOrder = orderKeeper.get(buyOrders.at(buyHeap.top()).getFirst());
+        auto sellOrder =
+            orderKeeper.get(sellOrders.at(sellHeap.top()).getFirst());
 
         if (buyOrder->getAmount() > sellOrder->getAmount()) {
             updateOrderFull(sellOrder);
             updateOrderPartially(
-                buyOrder, buyOrder->getAmount() - sellOrder->getAmount());
+                buyOrder, sellOrder->getAmount());
         } else if (buyOrder->getAmount() < sellOrder->getAmount()) {
             updateOrderFull(buyOrder);
             updateOrderPartially(
-                sellOrder, sellOrder->getAmount() - buyOrder->getAmount());
+                sellOrder, buyOrder->getAmount());
         } else {
             updateOrderFull(sellOrder);
             updateOrderFull(buyOrder);
@@ -56,26 +55,23 @@ void Core::match() {
     }
 }
 
-void Core::createOrder(const std::string &clientId, size_t amount, double cost,
-                       bool isBuy) {
+std::string Core::createOrder(const std::string &clientId, size_t amount,
+                              double cost, bool isBuy) {
     const std::string &orderId =
         orderKeeper.save(clientId, amount, cost, isBuy);
-    std::string orderType = "sell ";
-    auto &correspondingMap = sellOrders;
-    if (isBuy) {
-        correspondingMap = buyOrders;
-        orderType = "buy ";
-    }
+    std::string orderType = isBuy ? "buy" : "sell";
+    auto &correspondingMap = isBuy ? buyOrders : sellOrders;
+
     if (correspondingMap.count(cost) > 0) {
-        correspondingMap[cost].add(orderId);
+        correspondingMap.at(cost).add(orderId);
     } else {
-        correspondingMap[cost] =
-            EqualCostOrders(isBuy, orderId);  // todo проверить!
+        correspondingMap.emplace(cost, orderId);
         isBuy ? buyHeap.push(cost) : sellHeap.push(cost);
     }
     std::cout << "User with id " << clientId << " creates order to "
-              << orderType << amount << " USD by " << cost << " RUB"
+              << orderType << " " << amount << " USD by " << cost << " RUB"
               << std::endl;
+    return orderId;
 }
 
 // Частично реализует предложение в заявке
@@ -87,22 +83,52 @@ void Core::updateOrderPartially(std::shared_ptr<Order> order,
 
 // Полностью реализует предложение в заявке
 void Core::updateOrderFull(std::shared_ptr<Order> order) {
-    auto &mapOfOrders = sellOrders;
-    if (order->isBuyOrder()) {
-        mapOfOrders = buyOrders;
-    }
+    auto &mapOfOrders = order->isBuyOrder() ? buyOrders : sellOrders;
 
-    auto &uuidDeque = mapOfOrders[order->getCost()].get();
-    uuidDeque.pop_front();
-    if (uuidDeque.empty()) {
+    EqualCostOrders &equalCostOrders = mapOfOrders.at(order->getCost());
+    equalCostOrders.popFirst();
+    if (equalCostOrders.empty()) {
         mapOfOrders.erase(order->getCost());
         order->isBuyOrder() ? buyHeap.pop() : sellHeap.pop();
     }
-    notificationService.notify(order, order->getCost());
+    notificationService.notify(order, order->getAmount());
     orderKeeper.remove(order->getId());
 }
 
 OrderKeeper &Core::getOrderKeeper() { return orderKeeper; }
+
+const std::priority_queue<double, std::vector<double>, std::less<>>
+    &Core::getBuyHeap() const {
+    return buyHeap;
+}
+
+const std::priority_queue<double, std::vector<double>, std::greater<>>
+    &Core::getSellHeap() const {
+    return sellHeap;
+}
+
+const std::unordered_map<double, EqualCostOrders> &Core::getBuyOrders() const {
+    return buyOrders;
+}
+
+const std::unordered_map<double, EqualCostOrders> &Core::getSellOrders() const {
+    return sellOrders;
+}
+
+void Core::clear() {
+    orderKeeper.clear();
+    // notificationService.clear();
+    sellOrders.clear();
+    buyOrders.clear();
+    while(!sellHeap.empty()) {
+        sellHeap.pop();
+    }
+    while(!buyHeap.empty()) {
+        buyHeap.pop();
+    }
+    mUserNames.clear();
+    mUsers.clear();
+}
 
 Core &GetCore() {
     static Core core;

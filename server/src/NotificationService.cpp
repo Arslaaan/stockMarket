@@ -7,5 +7,6 @@ void NotificationService::notify(std::shared_ptr<Order> order,
         operation = " bought ";
     }
     std::cout << "Client with id " << order->getClientId() << operation
-              << amountChanged << " USD by " << order->getCost() << " RUB";
+              << amountChanged << " USD by " << order->getCost() << " RUB"
+              << std::endl;
 }

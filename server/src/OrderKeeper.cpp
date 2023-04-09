@@ -14,3 +14,7 @@ std::shared_ptr<Order> OrderKeeper::get(const std::string& uuid) {
 void OrderKeeper::remove(const std::string& uuid) {
     orders.erase(uuid);
 }
+
+void OrderKeeper::clear() {
+    orders.clear();
+}

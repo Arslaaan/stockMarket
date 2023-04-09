@@ -20,13 +20,22 @@ class Core {
     // Запрос ID клиента по имени
     std::optional<std::string> getUserId(const std::string& aUserName);
     // Основная торговая логика.
-    // Сводит между собой всевозможные заявки на покупку и продажу.
+    // Сводит между собой заявки на покупку и продажу.
     void match();
     // Создает новую заявку
-    void createOrder(const std::string& clientId, size_t amount, double cost,
-                      bool isBuy);
+    std::string createOrder(const std::string& clientId, size_t amount, double cost,
+                     bool isBuy);
 
     OrderKeeper& getOrderKeeper();
+
+    const std::priority_queue<double, std::vector<double>, std::less<>>&
+    getBuyHeap() const;
+    const std::priority_queue<double, std::vector<double>, std::greater<>>&
+    getSellHeap() const;
+    const std::unordered_map<double, EqualCostOrders>& getBuyOrders() const;
+    const std::unordered_map<double, EqualCostOrders>& getSellOrders() const;
+
+    void clear();
 
    private:
     void updateOrderPartially(std::shared_ptr<Order> order,
