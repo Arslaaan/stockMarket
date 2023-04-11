@@ -6,9 +6,12 @@
 #include <string>
 #include <vector>
 
+#include "ClientInfo.h"
+#include "Common.hpp"
 #include "EqualCostOrders.h"
 #include "NotificationService.h"
 #include "OrderKeeper.h"
+#include "TradeHistory.h"
 
 class Core {
    public:
@@ -23,8 +26,8 @@ class Core {
     // Сводит между собой заявки на покупку и продажу.
     void match();
     // Создает новую заявку
-    std::string createOrder(const std::string& clientId, size_t amount, double cost,
-                     bool isBuy);
+    std::string createOrder(const std::string& clientId, size_t amount,
+                            double cost, bool isBuy);
 
     OrderKeeper& getOrderKeeper();
 
@@ -34,10 +37,17 @@ class Core {
     getSellHeap() const;
     const std::unordered_map<double, EqualCostOrders>& getBuyOrders() const;
     const std::unordered_map<double, EqualCostOrders>& getSellOrders() const;
+    const std::unordered_map<std::string, ClientInfo>& getClientsInfo() const;
+    const TradeHistory& getTradeHistory() const;
 
     void clear();
 
    private:
+    void trade(std::shared_ptr<Order> orderSrc,
+               std::shared_ptr<Order> orderDst);
+    void updateClientInfo(std::shared_ptr<Order>& order,
+                          const std::string& tradeId, bool sellCurrency,
+                          double amount);
     void updateOrderPartially(std::shared_ptr<Order> order,
                               size_t amountExchanged);
     void updateOrderFull(std::shared_ptr<Order> order);
@@ -46,9 +56,12 @@ class Core {
     std::map<size_t, std::string> mUsers;
     // <UserName, UserId>
     std::map<std::string, size_t> mUserNames;
+    // userId -> clientInfo
+    std::unordered_map<std::string, ClientInfo> clientsInfo;
 
     OrderKeeper orderKeeper;
     NotificationService notificationService;
+    TradeHistory tradeHistory;
 
     std::priority_queue<double, std::vector<double>,
                         std::less<>>

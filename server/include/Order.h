@@ -14,6 +14,8 @@ class Order {
     void setAmount(size_t newAmount);
     double getCost() const;
     bool isBuyOrder() const;
+    bool isActiveOrder() const;
+    void deactivate();
 
    private:
     std::string id;         // уникальный id заявки
@@ -22,4 +24,5 @@ class Order {
     size_t amount;          // количество валюты
     double cost;            // стоимость единицы валюты
     bool isBuy;  // true - это заявка на покупку, иначе - продажа
+    bool isActive;  // true - это активная заявка, иначе - совершенная
 };

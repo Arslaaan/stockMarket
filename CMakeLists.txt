@@ -39,6 +39,9 @@ ADD_EXECUTABLE(
     ${BACKEND_SERVER}/include/OrderKeeper.h
     ${BACKEND_SERVER}/include/EqualCostOrders.h
     ${BACKEND_SERVER}/include/NotificationService.h
+    ${BACKEND_SERVER}/include/Trade.h
+    ${BACKEND_SERVER}/include/TradeHistory.h
+    ${BACKEND_SERVER}/include/ClientInfo.h
 
     ${BACKEND_SERVER}/src/Server.cpp 
     ${BACKEND_SERVER}/src/Core.cpp 
@@ -47,6 +50,9 @@ ADD_EXECUTABLE(
     ${BACKEND_SERVER}/src/OrderKeeper.cpp
     ${BACKEND_SERVER}/src/EqualCostOrders.cpp
     ${BACKEND_SERVER}/src/NotificationService.cpp
+    ${BACKEND_SERVER}/src/Trade.cpp
+    ${BACKEND_SERVER}/src/TradeHistory.cpp
+    ${BACKEND_SERVER}/src/ClientInfo.cpp
     
     ${BACKEND_SERVER}/serverRun.cpp
 
@@ -75,6 +81,8 @@ add_executable(
     allTests
 
     ${BACKEND_SERVER}/${TESTS_DIR}/CoreTest.cc
+    ${BACKEND_SERVER}/${TESTS_DIR}/ClientInfo.cc
+    ${BACKEND_SERVER}/${TESTS_DIR}/MainTest.cc
 
     ${BACKEND_SERVER}/include/Server.h
     ${BACKEND_SERVER}/include/Core.h
@@ -83,6 +91,9 @@ add_executable(
     ${BACKEND_SERVER}/include/OrderKeeper.h
     ${BACKEND_SERVER}/include/EqualCostOrders.h
     ${BACKEND_SERVER}/include/NotificationService.h
+    ${BACKEND_SERVER}/include/Trade.h
+    ${BACKEND_SERVER}/include/TradeHistory.h
+    ${BACKEND_SERVER}/include/ClientInfo.h
 
     ${BACKEND_SERVER}/src/Server.cpp 
     ${BACKEND_SERVER}/src/Core.cpp 
@@ -91,6 +102,9 @@ add_executable(
     ${BACKEND_SERVER}/src/OrderKeeper.cpp
     ${BACKEND_SERVER}/src/EqualCostOrders.cpp
     ${BACKEND_SERVER}/src/NotificationService.cpp
+    ${BACKEND_SERVER}/src/Trade.cpp
+    ${BACKEND_SERVER}/src/TradeHistory.cpp
+    ${BACKEND_SERVER}/src/ClientInfo.cpp
 
     ${COMMON}/Common.hpp
     ${COMMON}/json.hpp
