@@ -14,19 +14,19 @@ static std::string Active = "Act";
 }  // namespace Requests
 
 namespace Currency {
-    static std::string USD = "USD";
-    static std::string RUR = "RUR";
-}
+static std::string USD = "USD";
+static std::string RUR = "RUR";
+}  // namespace Currency
 
 namespace OrderFields {
-    static std::string OpenTime = "ot";
-    static std::string CloseTime = "ct";
-    static std::string OperationType = "op"; // -> "b" or "s"
-    static std::string Amount = "am";
-    static std::string Cost = "co";
-}
+static std::string OpenTime = "ot";
+static std::string CloseTime = "ct";
+static std::string OperationType = "op";  // -> "b" or "s"
+static std::string Amount = "am";
+static std::string Cost = "co";
+}  // namespace OrderFields
 
 namespace Operation {
-    static std::string BUY = "b";
-    static std::string SELL = "s";
-}
+static std::string BUY = "b";
+static std::string SELL = "s";
+}  // namespace Operation

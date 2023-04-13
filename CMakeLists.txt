@@ -67,6 +67,8 @@ ADD_EXECUTABLE(
 
     ${CLIENT}/include/Client.h
     ${CLIENT}/src/Client.cpp
+    ${CLIENT}/include/CLI.h
+    ${CLIENT}/src/CLI.cpp
     
     ${CLIENT}/clientRun.cpp
 

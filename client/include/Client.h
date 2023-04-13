@@ -6,16 +6,26 @@
 
 #include "Common.hpp"
 #include "json.hpp"
+#include <ctime>
 
 using boost::asio::ip::tcp;
 
 class Client {
    public:
     Client(boost::asio::io_service& io_service);
+    // Авторизация или регистрация на сервере
     void connect(const std::string& name);
-    void transaction(const std::string& type, const std::string& amount,
+    // Открытие заявки на покупку или продажу
+    void openOrder(const std::string& type, const std::string& amount,
                      const std::string& cost);
-    void sell(const std::string& amount, const std::string& cost);
+    // Запрос текущего баланса
+    void balance();
+    // Запрос истории совершенных сделок
+    void history();
+    // Запрос активных заявок
+    void active();
+
+    
     tcp::socket& getSocket();
     const std::string& getId() const;
 

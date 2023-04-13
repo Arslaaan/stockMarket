@@ -16,29 +16,35 @@ void Session::handle_read(const boost::system::error_code &error,
                           size_t bytes_transferred) {
     if (error) {
         delete this;
+        return;
     }
 
     data_[bytes_transferred] = '\0';
-
-    // Парсим json, который пришёл нам в сообщении.
-    auto j = nlohmann::json::parse(data_);
-    auto reqType = j["ReqType"];
-
-    std::string reply = "Error! Unknown request type";
-    std::string userId = j["UserId"];
     ReplyGenerator replyGenerator(GetCore());
-    if (reqType == Requests::Connect) {
-        reply = replyGenerator.handleConnect(j["Message"]);
-    } else if (reqType == Requests::Buy || reqType == Requests::Sell) {
-        size_t amount = std::stoul(j["Amount"].get<std::string>());
-        double cost = std::stod(j["Cost"].get<std::string>());
-        reply = replyGenerator.handleTransaction(userId, amount, cost, reqType);
-    } else if (reqType == Requests::Balance) {
-        reply = replyGenerator.handleBalance(userId);
-    } else if (reqType == Requests::History) {
-        reply = replyGenerator.handleHistory(userId);
-    } else if (reqType == Requests::Active) {
-        reply = replyGenerator.handleActive(userId);
+    std::string reply = "Error! Unknown request type";
+
+    try {
+        // Парсим json, который пришёл нам в сообщении.
+        auto j = nlohmann::json::parse(data_);
+        std::string userId = j["UserId"];
+        auto reqType = j["ReqType"];
+
+        if (reqType == Requests::Connect) {
+            reply = replyGenerator.handleConnect(j["Message"]);
+        } else if (reqType == Requests::Buy || reqType == Requests::Sell) {
+            size_t amount = std::stoul(j["Amount"].get<std::string>());
+            double cost = std::stod(j["Cost"].get<std::string>());
+            reply =
+                replyGenerator.handleTransaction(userId, amount, cost, reqType);
+        } else if (reqType == Requests::Balance) {
+            reply = replyGenerator.handleBalance(userId);
+        } else if (reqType == Requests::History) {
+            reply = replyGenerator.handleHistory(userId);
+        } else if (reqType == Requests::Active) {
+            reply = replyGenerator.handleActive(userId);
+        }
+    } catch (const std::exception &e) {
+        std::cout << e.what() << std::endl;
     }
 
     boost::asio::async_write(socket_, boost::asio::buffer(reply, reply.size()),
