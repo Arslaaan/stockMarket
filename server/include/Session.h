@@ -7,6 +7,7 @@
 #include "Common.hpp"
 #include "Core.h"
 #include "json.hpp"
+#include "ReplyGenerator.h"
 
 using boost::asio::ip::tcp;
 

@@ -32,6 +32,7 @@ INCLUDE_DIRECTORIES(${CLIENT}/src)
 ADD_EXECUTABLE(
     ServerRun
 
+    ${BACKEND_SERVER}/include/ReplyGenerator.h
     ${BACKEND_SERVER}/include/Server.h
     ${BACKEND_SERVER}/include/Core.h
     ${BACKEND_SERVER}/include/Session.h
@@ -43,6 +44,7 @@ ADD_EXECUTABLE(
     ${BACKEND_SERVER}/include/TradeHistory.h
     ${BACKEND_SERVER}/include/ClientInfo.h
 
+    ${BACKEND_SERVER}/src/ReplyGenerator.cpp
     ${BACKEND_SERVER}/src/Server.cpp 
     ${BACKEND_SERVER}/src/Core.cpp 
     ${BACKEND_SERVER}/src/Session.cpp
@@ -83,6 +85,7 @@ add_executable(
     ${BACKEND_SERVER}/${TESTS_DIR}/CoreTest.cc
     ${BACKEND_SERVER}/${TESTS_DIR}/ClientInfo.cc
     ${BACKEND_SERVER}/${TESTS_DIR}/MainTest.cc
+    ${BACKEND_SERVER}/${TESTS_DIR}/ReplyGenerator.cc
 
     ${BACKEND_SERVER}/include/Server.h
     ${BACKEND_SERVER}/include/Core.h
@@ -94,6 +97,7 @@ add_executable(
     ${BACKEND_SERVER}/include/Trade.h
     ${BACKEND_SERVER}/include/TradeHistory.h
     ${BACKEND_SERVER}/include/ClientInfo.h
+    ${BACKEND_SERVER}/include/ReplyGenerator.h
 
     ${BACKEND_SERVER}/src/Server.cpp 
     ${BACKEND_SERVER}/src/Core.cpp 
@@ -105,6 +109,7 @@ add_executable(
     ${BACKEND_SERVER}/src/Trade.cpp
     ${BACKEND_SERVER}/src/TradeHistory.cpp
     ${BACKEND_SERVER}/src/ClientInfo.cpp
+    ${BACKEND_SERVER}/src/ReplyGenerator.cpp
 
     ${COMMON}/Common.hpp
     ${COMMON}/json.hpp

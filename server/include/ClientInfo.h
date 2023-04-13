@@ -24,7 +24,8 @@ class ClientInfo {
 
    private:
     std::map<std::string, double>
-        balance_;  // Будем считать, что double нам хватает.
+        balance_;  // Будем считать, что double нам хватает. Тут валютный баланс
+                   // может быть отрицательным + для единообразия с рубля double
     std::vector<std::string>
         history_;  // история сделок клиента. Хранит tradeId. Вектор для
                    // сохранения хронологического порядка

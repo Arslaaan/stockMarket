@@ -4,7 +4,7 @@ std::string Core::registerNewUser(const std::string &aUserName) {
     size_t newUserId = mUsers.size();
     mUsers[newUserId] = aUserName;
     mUserNames[aUserName] = newUserId;
-
+    clientsInfo[std::to_string(newUserId)];
     return std::to_string(newUserId);
 }
 
@@ -57,7 +57,8 @@ std::string Core::createOrder(const std::string &clientId, size_t amount,
         isBuy ? buyHeap.push(cost) : sellHeap.push(cost);
     }
     clientsInfo[clientId].addActiveOrder(orderId);
-    std::cout << "User with id " << clientId << " creates order to "
+    std::cout << "orderId: {" << orderId << "}. "
+              << "User with id " << clientId << " creates order to "
               << orderType << " " << amount << " USD by " << cost << " RUB"
               << std::endl;
     return orderId;
@@ -83,7 +84,6 @@ void Core::trade(std::shared_ptr<Order> orderSrc,
         updateOrderFull(orderDst);
     }
     auto tradeId = tradeHistory.add(orderSrc, orderDst, amount);
-    //todo где то тут ошибка
     updateClientInfo(orderSrc, tradeId, true, amount);
     updateClientInfo(orderDst, tradeId, false, amount);
 }

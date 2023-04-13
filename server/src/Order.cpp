@@ -11,7 +11,7 @@ Order::Order(const std::string& id_, const std::string& clientId_,
       isActive(true) {}
 const std::string& Order::getId() const { return id; }
 const std::string& Order::getClientId() const { return clientId; }
-const std::time_t& Order::getTimestamp() const { return timestamp; }
+std::time_t Order::getTimestamp() const { return timestamp; }
 size_t Order::getAmount() const { return amount; }
 void Order::setAmount(size_t newAmount) { amount = newAmount; }
 double Order::getCost() const { return cost; }

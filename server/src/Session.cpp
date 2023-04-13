@@ -26,21 +26,19 @@ void Session::handle_read(const boost::system::error_code &error,
 
     std::string reply = "Error! Unknown request type";
     std::string userId = j["UserId"];
+    ReplyGenerator replyGenerator(GetCore());
     if (reqType == Requests::Connect) {
-        // Это реквест на авторизацию пользователя (возможно нового).
-        // Возвращаем его ID.
-        auto userIdInMsg = GetCore().getUserId(j["Message"]);
-        if (!userIdInMsg.has_value()) {
-            reply = GetCore().registerNewUser(j["Message"]);
-        } else {
-            reply = userIdInMsg.value();
-        }
+        reply = replyGenerator.handleConnect(j["Message"]);
     } else if (reqType == Requests::Buy || reqType == Requests::Sell) {
         size_t amount = std::stoul(j["Amount"].get<std::string>());
         double cost = std::stod(j["Cost"].get<std::string>());
-        GetCore().createOrder(userId, amount, cost, reqType == Requests::Buy);
-        GetCore().match();
-        reply = "Success";
+        reply = replyGenerator.handleTransaction(userId, amount, cost, reqType);
+    } else if (reqType == Requests::Balance) {
+        reply = replyGenerator.handleBalance(userId);
+    } else if (reqType == Requests::History) {
+        reply = replyGenerator.handleHistory(userId);
+    } else if (reqType == Requests::Active) {
+        reply = replyGenerator.handleActive(userId);
     }
 
     boost::asio::async_write(socket_, boost::asio::buffer(reply, reply.size()),
