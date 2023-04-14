@@ -76,12 +76,16 @@ void CLI::OpenOrder(
         std::string costString = *++token;
         int amount = std::stoi(amountString);
         double cost = std::stod(costString);
+        if (cost <= 0 || amount <= 0) {
+            throw std::invalid_argument("Numbers must be positive");
+        }
         if (cmd == BUY) {
             client->openOrder(Requests::Buy, amountString, costString);
         } else {
             client->openOrder(Requests::Sell, amountString, costString);
         }
     } catch (const std::exception& e) {
+        std::cout << e.what() << std::endl;
         std::cout << "Wrong types of numbers" << std::endl;
         ShowHelp(helpTable.at(cmd));
     }
