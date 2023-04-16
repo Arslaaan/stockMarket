@@ -39,6 +39,7 @@ class Core {
     const std::unordered_map<double, EqualCostOrders>& getSellOrders() const;
     const std::unordered_map<std::string, ClientInfo>& getClientsInfo() const;
     const TradeHistory& getTradeHistory() const;
+    const std::string getQuotes() const;
     // Вычисляем хэш от пароля, который используется для аутентификации
     std::string hash(const std::string& text);
 
@@ -56,11 +57,14 @@ class Core {
     std::map<std::string, size_t> mUserNames;
     // userId -> clientInfo
     std::unordered_map<std::string, ClientInfo> clientsInfo;
+    
 
     OrderKeeper orderKeeper;
     NotificationService notificationService;
     TradeHistory tradeHistory;
     boost::hash<std::string> hasher;
+    double lastBuy; // цена покупки в последней сделке
+    double lastSell; // цена продажи в последней сделке
 
     std::priority_queue<double, std::vector<double>,
                         std::less<>>

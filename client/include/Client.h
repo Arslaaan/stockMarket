@@ -1,12 +1,12 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <ctime>
 #include <iostream>
 #include <string>
 
 #include "Common.hpp"
 #include "json.hpp"
-#include <ctime>
 
 using boost::asio::ip::tcp;
 
@@ -19,21 +19,24 @@ class Client {
     void registration(const std::string& name, const std::string& pass);
     // Открытие заявки на покупку или продажу
     void openOrder(const std::string& type, const std::string& amount,
-                     const std::string& cost);
+                   const std::string& cost);
     // Запрос текущего баланса
     void balance();
+    // Запрос текущей котировки
+    void quote();
     // Запрос истории совершенных сделок
     void history();
     // Запрос активных заявок
     void active();
 
-    
     tcp::socket& getSocket();
     const std::string& getId() const;
 
    private:
     void SendMessage(const std::string& aRequestType,
                      const std::string& aMessage);
+    void SendMessage(const std::string& aRequestType,
+                     const std::string& aMessage, const std::string& auth_);
 
     std::string ReadMessage();
 

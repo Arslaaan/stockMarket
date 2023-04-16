@@ -190,3 +190,32 @@ TEST_F(ReplyGeneratorFixture, CheckUser_1) {
                   .value(),
               "Unauthorized access");  // не тот хэш
 }
+
+// Проверка котировок
+TEST_F(ReplyGeneratorFixture, CheckQuote_1) {
+    ReplyGenerator replyGenerator(core);
+
+    replyGenerator.handleRegister("asd", Auth::encode64("q"));
+    auto id1 = handleLogin(replyGenerator, "asd", "q")["Id"];
+
+    replyGenerator.handleRegister("qwe", Auth::encode64("q"));
+    auto id2 = handleLogin(replyGenerator, "qwe", "q")["Id"];
+
+    replyGenerator.handleTransaction(id1, 5, 51, Requests::Buy);
+    replyGenerator.handleTransaction(id2, 4, 50, Requests::Sell);
+
+    ASSERT_EQ("Last completed sell cost: 50 RUR, last completed buy cost: 51 RUR", replyGenerator.handleQuote());
+}
+
+// Проверка котировок если сделок не было
+TEST_F(ReplyGeneratorFixture, CheckQuote_2) {
+    ReplyGenerator replyGenerator(core);
+
+    replyGenerator.handleRegister("asd", Auth::encode64("q"));
+    auto id1 = handleLogin(replyGenerator, "asd", "q")["Id"];
+
+    replyGenerator.handleRegister("qwe", Auth::encode64("q"));
+    auto id2 = handleLogin(replyGenerator, "qwe", "q")["Id"];
+
+    ASSERT_EQ("Last completed sell cost: None, last completed buy cost: None", replyGenerator.handleQuote());
+}

@@ -5,13 +5,14 @@
 static short port = 5555;
 
 namespace Requests {
-static std::string Login = "Log";
-static std::string Register = "Rgr";
-static std::string Buy = "Buy";
-static std::string Sell = "Sel";
-static std::string Balance = "Bal";
-static std::string History = "Hst";
-static std::string Active = "Act";
+static std::string Login = "Log"; // войти в аккаунт
+static std::string Register = "Rgr"; // зарегистрироваться
+static std::string Buy = "Buy"; // купить
+static std::string Sell = "Sel"; // продать
+static std::string Balance = "Bal"; // получить баланс
+static std::string History = "Hst"; // история совершенных сделок
+static std::string Active = "Act"; // активные сделки
+static std::string Quote = "Qte"; // получить текующую котировку
 }  // namespace Requests
 
 namespace Currency {

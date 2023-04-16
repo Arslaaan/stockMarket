@@ -84,6 +84,10 @@ std::string ReplyGenerator::handleActive(const std::string& userId) {
     return answer.dump();
 }
 
+std::string ReplyGenerator::handleQuote() {
+    return core_.getQuotes();
+}
+
 std::optional<std::string> ReplyGenerator::checkUser(const std::string& userId,
                                                      const std::string& auth) {
     if (!core_.getClientsInfo().count(userId)) {

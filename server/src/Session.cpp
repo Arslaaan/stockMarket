@@ -49,6 +49,8 @@ void Session::handle_read(const boost::system::error_code &error,
                     reply = replyGenerator.handleHistory(userId);
                 } else if (reqType == Requests::Active) {
                     reply = replyGenerator.handleActive(userId);
+                } else if (reqType == Requests::Quote) {
+                    reply = replyGenerator.handleQuote();
                 }
             }
         }

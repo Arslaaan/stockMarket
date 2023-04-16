@@ -19,8 +19,7 @@ void Client::login(const std::string &name, const std::string &pass) {
 }
 
 void Client::registration(const std::string &name, const std::string &pass) {
-    auth = Auth::encode64(pass);
-    SendMessage(Requests::Register, name);
+    SendMessage(Requests::Register, name, Auth::encode64(pass));
     const auto &answer = ReadMessage();
     std::cout << "Server: " << answer << std::endl;
 }
@@ -57,6 +56,12 @@ void Client::balance() {
     } catch (const std::exception &e) {
         std::cout << "Server: " << answer << std::endl;
     }
+}
+
+void Client::quote() {
+    SendMessage(Requests::Quote, "");
+    std::string answer = ReadMessage();
+    std::cout << "Server: " << answer << std::endl;
 }
 
 void Client::history() {
@@ -123,14 +128,15 @@ const std::string &Client::getId() const { return id; }
 
 // Отправка сообщения на сервер по шаблону.
 void Client::SendMessage(const std::string &aRequestType,
-                         const std::string &aMessage) {
+                         const std::string &aMessage,
+                         const std::string &auth_) {
     nlohmann::json req;
     req["UserId"] = id;
     req["ReqType"] = aRequestType;
     if (!aMessage.empty()) {
         req["Message"] = aMessage;
     }
-    req["Auth"] = auth;
+    req["Auth"] = auth_;
 
     std::string request = req.dump();
     boost::system::error_code error;
@@ -141,9 +147,19 @@ void Client::SendMessage(const std::string &aRequestType,
     }
 }
 
+// Отправка сообщения на сервер по шаблону.
+void Client::SendMessage(const std::string &aRequestType,
+                         const std::string &aMessage) {
+    SendMessage(aRequestType, aMessage, auth);
+}
+
 std::string Client::ReadMessage() {
     boost::asio::streambuf b;
-    boost::asio::read_until(aSocket, b, "\0");
+    boost::system::error_code error;
+    boost::asio::read_until(aSocket, b, "\0", error);
+    if (error) {
+        return "no respond";
+    }
     std::istream is(&b);
     std::string line(std::istreambuf_iterator<char>(is), {});
     return line;

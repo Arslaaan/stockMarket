@@ -19,6 +19,7 @@ void CLI::Run(const std::string& cmd) {
     }
     Commands command = commandTable.at(commandType);
     if (!checkSize(command, tokens)) {
+        std::cout << "Incorrect command, please see help" << std::endl;
         ShowHelp(helpTable.at(command));
         return;
     }
@@ -26,7 +27,7 @@ void CLI::Run(const std::string& cmd) {
         case LOGIN:
         case REGISTER: {
             if (*(++token) == "-u") {
-                std::string name = *(++token);
+                std::string name = *++token;
                 if (*++token == "-p") {
                     std::string pass = *++token;
                     if (command == LOGIN) {
@@ -37,6 +38,7 @@ void CLI::Run(const std::string& cmd) {
                     break;
                 }
             }
+            std::cout << "Incorrect command, check usage:" << std::endl;
             ShowHelp(helpTable.at(command));
             break;
         }
@@ -62,6 +64,10 @@ void CLI::Run(const std::string& cmd) {
         }
         case ACTIVE: {
             client->active();
+            break;
+        }
+        case QUOTE: {
+            client->quote();
             break;
         }
         case EXIT: {

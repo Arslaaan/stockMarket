@@ -18,6 +18,8 @@ class ReplyGenerator {
     std::string handleHistory(const std::string& userId);
     // Возвращает активные сделки
     std::string handleActive(const std::string& userId);
+    // Возвращает текущую котировку валюты
+    std::string handleQuote();
     // Проверка что пользователь зарегистрирован и пришел с правильным хэшем пароля
     std::optional<std::string> checkUser(const std::string& userId, const std::string& auth);
 

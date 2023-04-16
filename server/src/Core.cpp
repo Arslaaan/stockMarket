@@ -83,7 +83,9 @@ void Core::trade(const std::unique_ptr<Order> &orderSrc,
         updateOrderFull(orderSrc);
         updateOrderFull(orderDst);
     }
-    auto tradeId = tradeHistory.add(orderSrc, orderDst, amount);
+    lastBuy = orderDst->getCost();
+    lastSell = orderSrc->getCost();
+    const auto& tradeId = tradeHistory.add(orderSrc, orderDst, amount);
     updateClientInfo(orderSrc, tradeId, true, amount);
     updateClientInfo(orderDst, tradeId, false, amount);
 }
@@ -160,6 +162,26 @@ const std::unordered_map<std::string, ClientInfo> &Core::getClientsInfo()
 }
 
 const TradeHistory &Core::getTradeHistory() const { return tradeHistory; }
+
+const std::string Core::getQuotes() const {
+    std::stringstream ss;
+    ss << "Last completed sell cost: ";
+    if (lastSell > 0.0) {
+        ss << lastSell << " " << Currency::RUR;
+    } else {
+        ss << "None";
+    }
+    ss << ", ";
+    
+    ss << "last completed buy cost: ";
+    if (lastBuy > 0.0) {
+        ss << lastBuy << " " << Currency::RUR;
+    } else {
+        ss << "None";
+    }
+
+    return ss.str(); 
+}
 
 Core &GetCore() {
     static Core core;
