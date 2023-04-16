@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/functional/hash.hpp>
 #include <map>
 #include <optional>
 #include <queue>
@@ -12,14 +13,13 @@
 #include "NotificationService.h"
 #include "OrderKeeper.h"
 #include "TradeHistory.h"
+#include "json.hpp"
 
 class Core {
    public:
-    // "Регистрирует" нового пользователя и возвращает его ID.
-    std::string registerNewUser(const std::string& aUserName);
+    void registerNewUser(const std::string& aUserName,
+                                const std::string& auth);
 
-    // Запрос имени клиента по ID
-    std::optional<std::string> getUserName(const std::string& aUserId);
     // Запрос ID клиента по имени
     std::optional<std::string> getUserId(const std::string& aUserName);
     // Основная торговая логика.
@@ -39,21 +39,19 @@ class Core {
     const std::unordered_map<double, EqualCostOrders>& getSellOrders() const;
     const std::unordered_map<std::string, ClientInfo>& getClientsInfo() const;
     const TradeHistory& getTradeHistory() const;
-
-    void clear();
+    // Вычисляем хэш от пароля, который используется для аутентификации
+    std::string hash(const std::string& text);
 
    private:
-    void trade(std::shared_ptr<Order> orderSrc,
-               std::shared_ptr<Order> orderDst);
-    void updateClientInfo(std::shared_ptr<Order>& order,
+    void trade(const std::unique_ptr<Order>& orderSrc,
+               const std::unique_ptr<Order>& orderDst);
+    void updateClientInfo(const std::unique_ptr<Order>& order,
                           const std::string& tradeId, bool sellCurrency,
                           double amount);
-    void updateOrderPartially(std::shared_ptr<Order> order,
+    void updateOrderPartially(const std::unique_ptr<Order>& order,
                               size_t amountExchanged);
-    void updateOrderFull(std::shared_ptr<Order> order);
+    void updateOrderFull(const std::unique_ptr<Order>& order);
 
-    // <UserId, UserName>
-    std::map<size_t, std::string> mUsers;
     // <UserName, UserId>
     std::map<std::string, size_t> mUserNames;
     // userId -> clientInfo
@@ -62,6 +60,7 @@ class Core {
     OrderKeeper orderKeeper;
     NotificationService notificationService;
     TradeHistory tradeHistory;
+    boost::hash<std::string> hasher;
 
     std::priority_queue<double, std::vector<double>,
                         std::less<>>

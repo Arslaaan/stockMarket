@@ -10,11 +10,11 @@
 
 class TradeHistory {
    public:
-    std::string add(std::shared_ptr<Order> orderSrc,
-                    std::shared_ptr<Order> orderDst, size_t amountTraded);
-    const std::shared_ptr<Trade>& get(const std::string& tradeId) const;
+    std::string add(const std::unique_ptr<Order>& orderSrc,
+                    const std::unique_ptr<Order>& orderDst, size_t amountTraded);
+    const std::unique_ptr<Trade>& get(const std::string& tradeId) const;
 
    private:
-    std::unordered_map<std::string, std::shared_ptr<Trade>> trades;
+    std::unordered_map<std::string, std::unique_ptr<Trade>> trades;
     boost::uuids::random_generator generator;
 };

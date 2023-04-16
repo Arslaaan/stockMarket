@@ -7,9 +7,8 @@
 class ReplyGenerator {
    public:
     ReplyGenerator(Core& core);
-    // Авторизацию пользователя (возможно нового).
-    // Возвращает его ID.
-    std::string handleConnect(const std::string& userName);
+    std::string handleRegister(const std::string& userName, const std::string& pass);
+    std::string handleLogin(const std::string& userName, const std::string& pass);
     // Покупка или продажа, матчит заявки. Возвращает успешность операции.
     std::string handleTransaction(const std::string& userId, size_t amount,
                                   double cost, const std::string& type);
@@ -19,6 +18,8 @@ class ReplyGenerator {
     std::string handleHistory(const std::string& userId);
     // Возвращает активные сделки
     std::string handleActive(const std::string& userId);
+    // Проверка что пользователь зарегистрирован и пришел с правильным хэшем пароля
+    std::optional<std::string> checkUser(const std::string& userId, const std::string& auth);
 
    private:
     Core& core_;

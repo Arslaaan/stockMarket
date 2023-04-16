@@ -29,19 +29,28 @@ void Session::handle_read(const boost::system::error_code &error,
         std::string userId = j["UserId"];
         auto reqType = j["ReqType"];
 
-        if (reqType == Requests::Connect) {
-            reply = replyGenerator.handleConnect(j["Message"]);
-        } else if (reqType == Requests::Buy || reqType == Requests::Sell) {
-            size_t amount = std::stoul(j["Amount"].get<std::string>());
-            double cost = std::stod(j["Cost"].get<std::string>());
-            reply =
-                replyGenerator.handleTransaction(userId, amount, cost, reqType);
-        } else if (reqType == Requests::Balance) {
-            reply = replyGenerator.handleBalance(userId);
-        } else if (reqType == Requests::History) {
-            reply = replyGenerator.handleHistory(userId);
-        } else if (reqType == Requests::Active) {
-            reply = replyGenerator.handleActive(userId);
+        if (reqType == Requests::Register) {
+            reply = replyGenerator.handleRegister(j["Message"], j["Auth"]); // сделать так чтоб не возвращал json а только статус операции
+        } else if (reqType == Requests::Login) {
+            reply = replyGenerator.handleLogin(j["Message"], j["Auth"]); // сделать так чтоб возвращал json
+        } else {
+            auto replyError = replyGenerator.checkUser(userId, j["Auth"]);
+            if (replyError.has_value()) {
+                reply = replyError.value();
+            } else {
+                if (reqType == Requests::Buy || reqType == Requests::Sell) {
+                    size_t amount = std::stoul(j["Amount"].get<std::string>());
+                    double cost = std::stod(j["Cost"].get<std::string>());
+                    reply = replyGenerator.handleTransaction(userId, amount,
+                                                             cost, reqType);
+                } else if (reqType == Requests::Balance) {
+                    reply = replyGenerator.handleBalance(userId);
+                } else if (reqType == Requests::History) {
+                    reply = replyGenerator.handleHistory(userId);
+                } else if (reqType == Requests::Active) {
+                    reply = replyGenerator.handleActive(userId);
+                }
+            }
         }
     } catch (const std::exception &e) {
         std::cout << e.what() << std::endl;
@@ -55,6 +64,7 @@ void Session::handle_read(const boost::system::error_code &error,
 void Session::handle_write(const boost::system::error_code &error) {
     if (error) {
         delete this;
+        return;
     }
     socket_.async_read_some(
         boost::asio::buffer(data_, max_length),

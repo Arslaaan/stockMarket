@@ -1,14 +1,19 @@
 #include "Core.h"
 
-std::string Core::registerNewUser(const std::string &aUserName) {
-    size_t newUserId = mUsers.size();
-    mUsers[newUserId] = aUserName;
+void Core::registerNewUser(const std::string &aUserName,
+                                  const std::string &passEncoded) {
+    size_t newUserId = mUserNames.size();
     mUserNames[aUserName] = newUserId;
-    clientsInfo[std::to_string(newUserId)];
-    return std::to_string(newUserId);
+    
+    const auto &stringUserId = std::to_string(newUserId);
+    const auto &decodedPass = Auth::decode64(passEncoded);
+    const auto &auth = Auth::encode64(hash(decodedPass));
+    
+    clientsInfo.emplace(std::piecewise_construct,
+             std::forward_as_tuple(stringUserId),
+             std::forward_as_tuple(stringUserId, aUserName, auth));
 }
 
-// для уменьшения дублирования кода
 template <class T, class M>
 std::optional<M> findUser(const T &user, std::map<T, M> &map) {
     const auto userIt = map.find(user);
@@ -16,12 +21,6 @@ std::optional<M> findUser(const T &user, std::map<T, M> &map) {
         return {};
     }
     return userIt->second;
-}
-
-// Запрос имени клиента по ID
-std::optional<std::string> Core::getUserName(const std::string &aUserId) {
-    int id = std::stoi(aUserId);
-    return findUser<size_t, std::string>(id, mUsers);
 }
 
 // Запрос ID клиента по имени
@@ -36,8 +35,9 @@ std::optional<std::string> Core::getUserId(const std::string &aUserName) {
 void Core::match() {
     while (!buyHeap.empty() && !sellHeap.empty() &&
            (buyHeap.top() - sellHeap.top() >= 0)) {
-        auto buyOrder = orderKeeper.get(buyOrders.at(buyHeap.top()).getFirst());
-        auto sellOrder =
+        const auto &buyOrder =
+            orderKeeper.get(buyOrders.at(buyHeap.top()).getFirst());
+        const auto &sellOrder =
             orderKeeper.get(sellOrders.at(sellHeap.top()).getFirst());
         trade(sellOrder, buyOrder);
     }
@@ -56,7 +56,7 @@ std::string Core::createOrder(const std::string &clientId, size_t amount,
         correspondingMap.emplace(cost, orderId);
         isBuy ? buyHeap.push(cost) : sellHeap.push(cost);
     }
-    clientsInfo[clientId].addActiveOrder(orderId);
+    clientsInfo.at(clientId).addActiveOrder(orderId);
     std::cout << "orderId: {" << orderId << "}. "
               << "User with id " << clientId << " creates order to "
               << orderType << " " << amount << " USD by " << cost << " RUB"
@@ -67,8 +67,8 @@ std::string Core::createOrder(const std::string &clientId, size_t amount,
 // @param orderSrc от кого идет валюта
 // @param orderDst кому идет валюта
 // @param amountTraded количество обменянной валюты
-void Core::trade(std::shared_ptr<Order> orderSrc,
-                 std::shared_ptr<Order> orderDst) {
+void Core::trade(const std::unique_ptr<Order> &orderSrc,
+                 const std::unique_ptr<Order> &orderDst) {
     size_t amount;
     if (orderDst->getAmount() > orderSrc->getAmount()) {
         amount = orderSrc->getAmount();
@@ -93,7 +93,7 @@ void Core::trade(std::shared_ptr<Order> orderSrc,
 /// @param tradeId
 /// @param sellCurrency true - продаем валюту, иначе покупаем
 /// @param amount количество валюты для обмена
-void Core::updateClientInfo(std::shared_ptr<Order> &order,
+void Core::updateClientInfo(const std::unique_ptr<Order> &order,
                             const std::string &tradeId, bool sellCurrency,
                             double amount) {
     ClientInfo &clientInfo = clientsInfo.at(order->getClientId());
@@ -112,13 +112,13 @@ void Core::updateClientInfo(std::shared_ptr<Order> &order,
 }
 
 // Частично реализует предложение в заявке
-void Core::updateOrderPartially(std::shared_ptr<Order> order,
+void Core::updateOrderPartially(const std::unique_ptr<Order> &order,
                                 size_t amountTraded) {
     order->setAmount(order->getAmount() - amountTraded);
 }
 
 // Полностью реализует предложение в заявке
-void Core::updateOrderFull(std::shared_ptr<Order> order) {
+void Core::updateOrderFull(const std::unique_ptr<Order> &order) {
     auto &mapOfOrders = order->isBuyOrder() ? buyOrders : sellOrders;
 
     EqualCostOrders &equalCostOrders = mapOfOrders.at(order->getCost());
@@ -128,6 +128,10 @@ void Core::updateOrderFull(std::shared_ptr<Order> order) {
         order->isBuyOrder() ? buyHeap.pop() : sellHeap.pop();
     }
     order->deactivate();
+}
+
+std::string Core::hash(const std::string &text) {
+    return std::to_string(hasher(text));
 }
 
 OrderKeeper &Core::getOrderKeeper() { return orderKeeper; }
@@ -156,21 +160,6 @@ const std::unordered_map<std::string, ClientInfo> &Core::getClientsInfo()
 }
 
 const TradeHistory &Core::getTradeHistory() const { return tradeHistory; }
-
-void Core::clear() {
-    orderKeeper.clear();
-    // notificationService.clear();
-    sellOrders.clear();
-    buyOrders.clear();
-    while (!sellHeap.empty()) {
-        sellHeap.pop();
-    }
-    while (!buyHeap.empty()) {
-        buyHeap.pop();
-    }
-    mUserNames.clear();
-    mUsers.clear();
-}
 
 Core &GetCore() {
     static Core core;

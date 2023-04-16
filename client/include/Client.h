@@ -13,8 +13,10 @@ using boost::asio::ip::tcp;
 class Client {
    public:
     Client(boost::asio::io_service& io_service);
-    // Авторизация или регистрация на сервере
-    void connect(const std::string& name);
+    // Логин на сервер
+    void login(const std::string& name, const std::string& pass);
+    // Регистрация на сервере
+    void registration(const std::string& name, const std::string& pass);
     // Открытие заявки на покупку или продажу
     void openOrder(const std::string& type, const std::string& amount,
                      const std::string& cost);
@@ -36,6 +38,7 @@ class Client {
     std::string ReadMessage();
 
     std::string name;
+    std::string auth;
     std::string id = "0";
     tcp::socket aSocket;
 };

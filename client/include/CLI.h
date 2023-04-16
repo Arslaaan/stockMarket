@@ -14,7 +14,17 @@ struct HelpInfo {
 
 class CLI {
    public:
-    enum Commands { CONNECT, BUY, SELL, HELP, BALANCE, HISTORY, ACTIVE, EXIT };
+    enum Commands {
+        LOGIN,
+        REGISTER,
+        BUY,
+        SELL,
+        HELP,
+        BALANCE,
+        HISTORY,
+        ACTIVE,
+        EXIT
+    };
     CLI(std::unique_ptr<Client>& client_);
 
     void Run(const std::string& cmd);
@@ -22,13 +32,17 @@ class CLI {
 
    private:
     const std::map<std::string, Commands> commandTable = {
-        {"connect", CONNECT}, {"buy", BUY},         {"sell", SELL},
-        {"help", HELP},       {"balance", BALANCE}, {"history", HISTORY},
-        {"active", ACTIVE},   {"exit", EXIT}};
+        {"login", LOGIN},   {"buy", BUY},         {"sell", SELL},
+        {"help", HELP},     {"balance", BALANCE}, {"history", HISTORY},
+        {"active", ACTIVE}, {"exit", EXIT},       {"register", REGISTER}};
 
     const std::map<Commands, HelpInfo> helpTable = {
-        {CONNECT,
-         {"Connect: log in to server with name ${USER}", "connect -u user"}},
+        {LOGIN,
+         {"Login: log in to server with name ${USER} and ${PASSWORD}",
+          "login -u user -p password"}},
+        {REGISTER,
+         {"Register: registration on server with name ${USER} and ${PASSWORD}",
+          "register -u user -p password"}},
         {BUY,
          {"Buy: buy ${AMOUNT_INT} USD where each costs ${AMOUNT_DOUBLE} RUB",
           "buy 5 70.50"}},

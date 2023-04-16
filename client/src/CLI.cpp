@@ -20,14 +20,24 @@ void CLI::Run(const std::string& cmd) {
     Commands command = commandTable.at(commandType);
     if (!checkSize(command, tokens)) {
         ShowHelp(helpTable.at(command));
+        return;
     }
     switch (command) {
-        case CONNECT: {
+        case LOGIN:
+        case REGISTER: {
             if (*(++token) == "-u") {
-                client->connect(*(++token));
-            } else {
-                ShowHelp(helpTable.at(command));
+                std::string name = *(++token);
+                if (*++token == "-p") {
+                    std::string pass = *++token;
+                    if (command == LOGIN) {
+                        client->login(name, pass);
+                    } else {
+                        client->registration(name, pass);
+                    }
+                    break;
+                }
             }
+            ShowHelp(helpTable.at(command));
             break;
         }
         case BUY: {

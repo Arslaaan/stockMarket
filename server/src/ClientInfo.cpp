@@ -1,6 +1,8 @@
 #include "ClientInfo.h"
 
-ClientInfo::ClientInfo() {
+ClientInfo::ClientInfo(const std::string& userId_, const std::string& userName_,
+                       const std::string& auth_)
+    : userId(userId_), userName(userName_), auth(auth_) {
     balance_[Currency::USD] = 0.0;
     balance_[Currency::RUR] = 0.0;
 }
@@ -10,6 +12,12 @@ void ClientInfo::addToBalance(const std::string& type, double income) {
 }
 double ClientInfo::getBalance(const std::string& type) const {
     return balance_.at(type);
+}
+
+const std::string& ClientInfo::getUserName() const { return userName; }
+
+bool ClientInfo::checkAuth(const std::string& auth_) const {
+    return auth == auth_;
 }
 
 void ClientInfo::takeFromBalance(const std::string& type, double expenditure) {

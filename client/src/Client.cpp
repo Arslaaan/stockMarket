@@ -4,11 +4,25 @@ using boost::asio::ip::tcp;
 
 Client::Client(boost::asio::io_service &io_service) : aSocket(io_service) {}
 
-// Подключаемся либо создаём, если такого пользователя нет, получаем его ID.
-void Client::connect(const std::string &name) {
-    SendMessage(Requests::Connect, name);
-    id = ReadMessage();
-    std::cout << "You have assigned id: " << getId() << std::endl;
+void Client::login(const std::string &name, const std::string &pass) {
+    auth = Auth::encode64(pass);
+    SendMessage(Requests::Login, name);
+    const auto &answer = ReadMessage();
+    try {
+        auto json = nlohmann::json::parse(answer);
+        id = json["Id"];
+        auth = json["Auth"];
+        std::cout << "Login successful!" << std::endl;
+    } catch (const std::exception &e) {
+        std::cout << "Server: " << answer << std::endl;
+    }
+}
+
+void Client::registration(const std::string &name, const std::string &pass) {
+    auth = Auth::encode64(pass);
+    SendMessage(Requests::Register, name);
+    const auto &answer = ReadMessage();
+    std::cout << "Server: " << answer << std::endl;
 }
 
 void Client::openOrder(const std::string &type, const std::string &amount,
@@ -18,6 +32,7 @@ void Client::openOrder(const std::string &type, const std::string &amount,
     req["ReqType"] = type;
     req["Amount"] = amount;
     req["Cost"] = cost;
+    req["Auth"] = auth;
 
     std::string request = req.dump();
     boost::system::error_code error;
@@ -33,58 +48,72 @@ void Client::openOrder(const std::string &type, const std::string &amount,
 void Client::balance() {
     SendMessage(Requests::Balance, "");
     std::string answer = ReadMessage();
-    auto json = nlohmann::json::parse(answer);
-    std::cout << "Current balance: [" << Currency::USD << ": "
-              << json[Currency::USD] << "] "
-              << "[" << Currency::RUR << ": " << json[Currency::RUR] << "]"
-              << std::endl;
+    try {
+        auto json = nlohmann::json::parse(answer);
+        std::cout << "Current balance: [" << Currency::USD << ": "
+                  << json[Currency::USD] << "] "
+                  << "[" << Currency::RUR << ": " << json[Currency::RUR] << "]"
+                  << std::endl;
+    } catch (const std::exception &e) {
+        std::cout << "Server: " << answer << std::endl;
+    }
 }
 
 void Client::history() {
     SendMessage(Requests::History, "");
-    std::string answer = ReadMessage();
-    auto json = nlohmann::json::parse(answer);
+    const std::string &answer = ReadMessage();
+    try {
+        auto json = nlohmann::json::parse(answer);
+        std::cout << "History of all completed trades sorted from old to new:"
+                  << std::endl;
+        for (auto &elem : json) {
+            size_t amount = elem[OrderFields::Amount].get<size_t>();
+            double cost = elem[OrderFields::Cost].get<double>();
+            std::string operationType =
+                elem[OrderFields::OperationType] == Operation::BUY ? "buy"
+                                                                   : "sell";
+            std::time_t openTime = elem[OrderFields::OpenTime].get<time_t>();
+            std::string openTimeString = std::ctime(&openTime);
+            openTimeString.pop_back();
+            std::time_t closeTime = elem[OrderFields::CloseTime].get<time_t>();
+            std::string closeTimeString = std::ctime(&closeTime);
+            closeTimeString.pop_back();
 
-    std::cout << "History of all completed trades sorted from old to new:"
-              << std::endl;
-    for (auto &elem : json) {
-        size_t amount = elem[OrderFields::Amount].get<size_t>();
-        double cost = elem[OrderFields::Cost].get<double>();
-        std::string operationType =
-            elem[OrderFields::OperationType] == Operation::BUY ? "buy" : "sell";
-        std::time_t openTime = elem[OrderFields::OpenTime].get<time_t>();
-        std::string openTimeString = std::ctime(&openTime);
-        openTimeString.pop_back();
-        std::time_t closeTime = elem[OrderFields::CloseTime].get<time_t>();
-        std::string closeTimeString = std::ctime(&closeTime);
-        closeTimeString.pop_back();
-
-        std::cout << "\t"
-                  << "Time open/close: [" << openTimeString << " - "
-                  << closeTimeString << "], order: [" << operationType << " "
-                  << amount << " USD by cost: " << cost << "]" << std::endl;
+            std::cout << "\t"
+                      << "Time open/close: [" << openTimeString << " - "
+                      << closeTimeString << "], order: [" << operationType
+                      << " " << amount << " USD by cost: " << cost << "]"
+                      << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cout << "Server: " << answer << std::endl;
     }
 }
 
 void Client::active() {
     SendMessage(Requests::Active, "");
-    std::string answer = ReadMessage();
-    auto json = nlohmann::json::parse(answer);
+    const std::string &answer = ReadMessage();
 
-    std::cout << "Active orders sorted from old to new:" << std::endl;
-    for (auto &elem : json) {
-        size_t amount = elem[OrderFields::Amount].get<size_t>();
-        double cost = elem[OrderFields::Cost].get<double>();
-        std::string operationType =
-            elem[OrderFields::OperationType] == Operation::BUY ? "buy" : "sell";
-        std::time_t openTime = elem[OrderFields::OpenTime].get<time_t>();
-        std::string openTimeString = std::ctime(&openTime);
-        openTimeString.pop_back();
+    try {
+        auto json = nlohmann::json::parse(answer);
+        std::cout << "Active orders sorted from old to new:" << std::endl;
+        for (auto &elem : json) {
+            size_t amount = elem[OrderFields::Amount].get<size_t>();
+            double cost = elem[OrderFields::Cost].get<double>();
+            std::string operationType =
+                elem[OrderFields::OperationType] == Operation::BUY ? "buy"
+                                                                   : "sell";
+            std::time_t openTime = elem[OrderFields::OpenTime].get<time_t>();
+            std::string openTimeString = std::ctime(&openTime);
+            openTimeString.pop_back();
 
-        std::cout << "\t"
-                  << "Time open: [" << openTimeString << "], order: ["
-                  << operationType << " " << amount << " USD by cost: " << cost
-                  << "]" << std::endl;
+            std::cout << "\t"
+                      << "Time open: [" << openTimeString << "], order: ["
+                      << operationType << " " << amount
+                      << " USD by cost: " << cost << "]" << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cout << "Server: " << answer << std::endl;
     }
 }
 
@@ -101,6 +130,7 @@ void Client::SendMessage(const std::string &aRequestType,
     if (!aMessage.empty()) {
         req["Message"] = aMessage;
     }
+    req["Auth"] = auth;
 
     std::string request = req.dump();
     boost::system::error_code error;

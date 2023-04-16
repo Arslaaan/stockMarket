@@ -3,14 +3,17 @@
 #include "Core.h"
 
 TEST(ClientInfo, testAddToBalance_1) {
-    ClientInfo cl;
+    const std::string& a = "qwe";
+    const std::string& b = "qwe";
+    const std::string& c = "qwe";
+    ClientInfo cl(a, b, c);
 
     ASSERT_EQ(cl.getBalance(Currency::RUR), 0);
     ASSERT_EQ(cl.getBalance(Currency::USD), 0);
 }
 
 TEST(ClientInfo, testAddToBalance_2) {
-    ClientInfo cl;
+    ClientInfo cl("qwe", "qwe", "qwe");
 
     cl.addToBalance(Currency::RUR, 50.1);
     cl.addToBalance(Currency::USD, 100);
@@ -20,7 +23,7 @@ TEST(ClientInfo, testAddToBalance_2) {
 }
 
 TEST(ClientInfo, takeFromBalance_1) {
-    ClientInfo cl;
+    ClientInfo cl("qwe", "qwe", "qwe");
 
     cl.takeFromBalance(Currency::RUR, 50.1);
     cl.takeFromBalance(Currency::USD, 100);
@@ -30,7 +33,7 @@ TEST(ClientInfo, takeFromBalance_1) {
 }
 
 TEST(ClientInfo, historyUpdate_1) {
-    ClientInfo cl;
+    ClientInfo cl("qwe", "qwe", "qwe");
 
     cl.historyUpdate("qweqwe");
     cl.historyUpdate("asdasd");
@@ -40,7 +43,7 @@ TEST(ClientInfo, historyUpdate_1) {
 }
 
 TEST(ClientInfo, addRemoveTest) {
-    ClientInfo cl;
+    ClientInfo cl("qwe", "qwe", "qwe");
 
     cl.addActiveOrder("qweqwe");
     cl.addActiveOrder("asdasd");

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <boost/beast/core/detail/base64.hpp>
+
 #include "Core.h"
 
 class TestFixture : public ::testing::Test {
@@ -7,7 +9,15 @@ class TestFixture : public ::testing::Test {
     Core core;
 
    protected:
-    void SetUp(void) override { core = Core(); }
+    void SetUp(void) override {
+        core = Core();
+        // заводим 5 пользователей
+        core.registerNewUser("asd", "");
+        core.registerNewUser("aaa", "");
+        core.registerNewUser("bbb", "");
+        core.registerNewUser("ccc", "");
+        core.registerNewUser("zxc", "");
+    }
 };
 
 // одна заявка на покупку
@@ -38,7 +48,7 @@ TEST_F(TestFixture, CreateOrder_2) {
     ASSERT_EQ(sellOrders.get().front(), id);
 
     const auto &buyOrders = core.getBuyOrders();
-    // ASSERT_TRUE(buyOrders.empty());
+    ASSERT_TRUE(buyOrders.empty());
     ASSERT_TRUE(core.getBuyHeap().empty());
 }
 
@@ -65,15 +75,31 @@ TEST_F(TestFixture, CreateOrder_3) {
     ASSERT_EQ(core.getBuyOrders().at(72.0).get().size(), 1);
 }
 
-// тест на двух пользователей
-TEST_F(TestFixture, RegisterUsers) {
-    auto id1 = core.registerNewUser("Arslan");
-    auto id2 = core.registerNewUser("Arslan1");
+// тест на регистрацию пользователя
+TEST_F(TestFixture, RegisterUsers_1) {
+    std::string password = "qwerty";
+    core.registerNewUser(
+        "Arslan",
+        Auth::encode64(
+            password));  // encode делаем на стороне клиента, а тут так
 
-    ASSERT_EQ(core.getUserId("Arslan").value(), id1);
-    ASSERT_EQ(core.getUserId("Arslan1").value(), id2);
-    ASSERT_EQ(core.getUserName(id1).value(), "Arslan");
-    ASSERT_EQ(core.getUserName(id2).value(), "Arslan1");
+    boost::hash<std::string> hasher;
+    std::string hashedPass = std::to_string(hasher(password));
+
+    auto id = core.getUserId("Arslan").value();
+    ASSERT_TRUE(
+        core.getClientsInfo().at(id).checkAuth(Auth::encode64(hashedPass)));
+}
+
+// тест на двух пользователей
+TEST_F(TestFixture, RegisterUsers_2) {
+    core.registerNewUser("Arslan", "");
+    core.registerNewUser("Arslan1", "");
+
+    auto id1 = core.getUserId("Arslan").value();
+    auto id2 = core.getUserId("Arslan1").value();
+    ASSERT_EQ(core.getClientsInfo().at(id1).getUserName(), "Arslan");
+    ASSERT_EQ(core.getClientsInfo().at(id2).getUserName(), "Arslan1");
     ASSERT_NE(id1, id2);
 }
 
