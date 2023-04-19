@@ -9,7 +9,7 @@ std::string OrderKeeper::save(const std::string& clientId, size_t amount,
 };
 
 const std::unique_ptr<Order>& OrderKeeper::get(const std::string& uuid) {
-    return orders[uuid];
+    return orders.at(uuid);
 }
 
 void OrderKeeper::remove(const std::string& uuid) { orders.erase(uuid); }

@@ -4,7 +4,6 @@
 int main() {
     try {
         boost::asio::io_service io_service;
-        // static Core core;
 
         Server s(io_service);
 

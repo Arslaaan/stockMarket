@@ -24,6 +24,7 @@ class CLI {
         HISTORY,
         ACTIVE,
         QUOTE,
+        CANCEL,
         EXIT
     };
     CLI(std::unique_ptr<Client>& client_);
@@ -36,7 +37,7 @@ class CLI {
         {"login", LOGIN},   {"buy", BUY},         {"sell", SELL},
         {"help", HELP},     {"balance", BALANCE}, {"history", HISTORY},
         {"active", ACTIVE}, {"exit", EXIT},       {"register", REGISTER},
-        {"quote", QUOTE}};
+        {"quote", QUOTE},   {"cancel", CANCEL}};
 
     const std::map<Commands, HelpInfo> helpTable = {
         {LOGIN,
@@ -58,6 +59,7 @@ class CLI {
           "history"}},
         {ACTIVE, {"Active: Shows info about active orders", "active"}},
         {QUOTE, {"Quote: Shows current stock quote", "quote"}},
+        {CANCEL, {"Cancel: cancel one of active orders", "cancel ${ORDER_ID}"}},
         {EXIT, {"Exit: Exit client", "exit"}},
     };
 

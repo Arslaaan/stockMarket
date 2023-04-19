@@ -40,6 +40,7 @@ class Core {
     const std::unordered_map<std::string, ClientInfo>& getClientsInfo() const;
     const TradeHistory& getTradeHistory() const;
     const std::string getQuotes() const;
+    void removeOldOrder(const std::unique_ptr<Order>& order);
     // Вычисляем хэш от пароля, который используется для аутентификации
     std::string hash(const std::string& text);
 

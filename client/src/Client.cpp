@@ -112,14 +112,20 @@ void Client::active() {
             std::string openTimeString = std::ctime(&openTime);
             openTimeString.pop_back();
 
-            std::cout << "\t"
-                      << "Time open: [" << openTimeString << "], order: ["
+            std::cout << "orderId: {" << elem[OrderFields::OrderId] << "} - "
+                      << "time open: [" << openTimeString << "], operation: ["
                       << operationType << " " << amount
                       << " USD by cost: " << cost << "]" << std::endl;
         }
     } catch (const std::exception &e) {
         std::cout << "Server: " << answer << std::endl;
     }
+}
+
+void Client::cancel(const std::string &orderId) {
+    SendMessage(Requests::Cancel, orderId);
+    std::string answer = ReadMessage();
+    std::cout << "Server: " << answer << std::endl;
 }
 
 tcp::socket &Client::getSocket() { return aSocket; }

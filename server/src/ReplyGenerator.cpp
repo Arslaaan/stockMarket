@@ -78,6 +78,7 @@ std::string ReplyGenerator::handleActive(const std::string& userId) {
         item[OrderFields::OpenTime] = order->getTimestamp();
         item[OrderFields::Amount] = order->getAmount();
         item[OrderFields::Cost] = order->getCost();
+        item[OrderFields::OrderId] = order->getId();
         items.push_back(item);
     }
     nlohmann::json answer = items;
@@ -86,6 +87,18 @@ std::string ReplyGenerator::handleActive(const std::string& userId) {
 
 std::string ReplyGenerator::handleQuote() {
     return core_.getQuotes();
+}
+
+std::string ReplyGenerator::handleCancel(const std::string& orderId) {
+    std::string reply = "Order succesfully canceled";
+    try {
+        const auto& order = core_.getOrderKeeper().get(orderId);
+        order->deactivate();
+        core_.removeOldOrder(order);
+    } catch (const std::exception& e) {
+        reply = "No order found";
+    }
+    return reply;
 }
 
 std::optional<std::string> ReplyGenerator::checkUser(const std::string& userId,

@@ -13,6 +13,7 @@ static std::string Balance = "Bal"; // получить баланс
 static std::string History = "Hst"; // история совершенных сделок
 static std::string Active = "Act"; // активные сделки
 static std::string Quote = "Qte"; // получить текующую котировку
+static std::string Cancel = "Cnl"; // отменить одну из текущих заявок
 }  // namespace Requests
 
 namespace Currency {
@@ -26,6 +27,7 @@ static std::string CloseTime = "ct";
 static std::string OperationType = "op";  // -> "b" or "s"
 static std::string Amount = "am";
 static std::string Cost = "co";
+static std::string OrderId = "od";
 }  // namespace OrderFields
 
 namespace Operation {

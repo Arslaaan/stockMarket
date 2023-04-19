@@ -70,6 +70,10 @@ void CLI::Run(const std::string& cmd) {
             client->quote();
             break;
         }
+        case CANCEL: {
+            client->cancel(*++token);
+            break;
+        }
         case EXIT: {
             exit(0);
             break;

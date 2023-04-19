@@ -28,6 +28,8 @@ class Client {
     void history();
     // Запрос активных заявок
     void active();
+    // Отмена активной заявки
+    void cancel(const std::string& orderId);
 
     tcp::socket& getSocket();
     const std::string& getId() const;

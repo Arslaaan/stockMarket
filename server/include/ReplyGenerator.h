@@ -20,6 +20,8 @@ class ReplyGenerator {
     std::string handleActive(const std::string& userId);
     // Возвращает текущую котировку валюты
     std::string handleQuote();
+    // Отменяет заявку
+    std::string handleCancel(const std::string& orderId);
     // Проверка что пользователь зарегистрирован и пришел с правильным хэшем пароля
     std::optional<std::string> checkUser(const std::string& userId, const std::string& auth);
 

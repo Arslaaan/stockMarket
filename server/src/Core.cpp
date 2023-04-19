@@ -1,17 +1,17 @@
 #include "Core.h"
 
 void Core::registerNewUser(const std::string &aUserName,
-                                  const std::string &passEncoded) {
+                           const std::string &passEncoded) {
     size_t newUserId = mUserNames.size();
     mUserNames[aUserName] = newUserId;
-    
+
     const auto &stringUserId = std::to_string(newUserId);
     const auto &decodedPass = Auth::decode64(passEncoded);
     const auto &auth = Auth::encode64(hash(decodedPass));
-    
+
     clientsInfo.emplace(std::piecewise_construct,
-             std::forward_as_tuple(stringUserId),
-             std::forward_as_tuple(stringUserId, aUserName, auth));
+                        std::forward_as_tuple(stringUserId),
+                        std::forward_as_tuple(stringUserId, aUserName, auth));
 }
 
 template <class T, class M>
@@ -35,12 +35,28 @@ std::optional<std::string> Core::getUserId(const std::string &aUserName) {
 void Core::match() {
     while (!buyHeap.empty() && !sellHeap.empty() &&
            (buyHeap.top() - sellHeap.top() >= 0)) {
-        const auto &buyOrder =
-            orderKeeper.get(buyOrders.at(buyHeap.top()).getFirst());
+        if (!buyOrders.count(buyHeap.top())) {
+            // значит уже нет заявки с cost == buyHeap.top() тк ее отменили,
+            // это единственный вариант
+            buyHeap.pop();
+            continue;
+        }
+        if (!sellOrders.count(sellHeap.top())) {
+            // значит уже нет заявки с cost == sellHeap.top() тк ее отменили,
+            // это единственный вариант
+            sellHeap.pop();
+            continue;
+        }
         const auto &sellOrder =
             orderKeeper.get(sellOrders.at(sellHeap.top()).getFirst());
+            const auto &buyOrder = orderKeeper.get(buyOrders.at(buyHeap.top()).getFirst());
         trade(sellOrder, buyOrder);
     }
+}
+
+void Core::removeOldOrder(const std::unique_ptr<Order> &order) {
+    updateOrderFull(order);
+    clientsInfo.at(order->getClientId()).removeOrder(order->getId());
 }
 
 std::string Core::createOrder(const std::string &clientId, size_t amount,
@@ -85,7 +101,7 @@ void Core::trade(const std::unique_ptr<Order> &orderSrc,
     }
     lastBuy = orderDst->getCost();
     lastSell = orderSrc->getCost();
-    const auto& tradeId = tradeHistory.add(orderSrc, orderDst, amount);
+    const auto &tradeId = tradeHistory.add(orderSrc, orderDst, amount);
     updateClientInfo(orderSrc, tradeId, true, amount);
     updateClientInfo(orderDst, tradeId, false, amount);
 }
@@ -127,7 +143,20 @@ void Core::updateOrderFull(const std::unique_ptr<Order> &order) {
     equalCostOrders.popFirst();
     if (equalCostOrders.empty()) {
         mapOfOrders.erase(order->getCost());
-        order->isBuyOrder() ? buyHeap.pop() : sellHeap.pop();
+        // актуализируем соответствующую heap после закрытия заявки, если можем
+        // не всегда это возможно, тк клиент может отменить заявку cost которой
+        // не на вершине heap в таком случае она актуализируется позже при match
+        if (order->isBuyOrder()) {
+            if (buyHeap.top() == order->getCost()) {
+                buyHeap.pop();
+            }
+        } else {
+            if (sellHeap.top() == order->getCost()) {
+                sellHeap.pop();
+            }
+        }
+        // order->isBuyOrder() ? buyHeap.pop() : sellHeap.pop(); // тут проблема
+        // тк при отмене заявки она необязательно на вершине
     }
     order->deactivate();
 }
@@ -172,7 +201,7 @@ const std::string Core::getQuotes() const {
         ss << "None";
     }
     ss << ", ";
-    
+
     ss << "last completed buy cost: ";
     if (lastBuy > 0.0) {
         ss << lastBuy << " " << Currency::RUR;
@@ -180,7 +209,7 @@ const std::string Core::getQuotes() const {
         ss << "None";
     }
 
-    return ss.str(); 
+    return ss.str();
 }
 
 Core &GetCore() {

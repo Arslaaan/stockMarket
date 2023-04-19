@@ -38,8 +38,10 @@ TEST_F(ReplyGeneratorFixture, HandleConnect_2) {
 }
 
 // Обертка для теста, чтобы уменьшить дублирование кода
-nlohmann::json handleLogin(ReplyGenerator& replyGenerator, const std::string& name, const::std::string& pass) {
-    return nlohmann::json::parse(replyGenerator.handleLogin(name, Auth::encode64(pass)));
+nlohmann::json handleLogin(ReplyGenerator& replyGenerator,
+                           const std::string& name, const ::std::string& pass) {
+    return nlohmann::json::parse(
+        replyGenerator.handleLogin(name, Auth::encode64(pass)));
 }
 
 // Проверка работы транзакции
@@ -204,7 +206,9 @@ TEST_F(ReplyGeneratorFixture, CheckQuote_1) {
     replyGenerator.handleTransaction(id1, 5, 51, Requests::Buy);
     replyGenerator.handleTransaction(id2, 4, 50, Requests::Sell);
 
-    ASSERT_EQ("Last completed sell cost: 50 RUR, last completed buy cost: 51 RUR", replyGenerator.handleQuote());
+    ASSERT_EQ(
+        "Last completed sell cost: 50 RUR, last completed buy cost: 51 RUR",
+        replyGenerator.handleQuote());
 }
 
 // Проверка котировок если сделок не было
@@ -217,5 +221,73 @@ TEST_F(ReplyGeneratorFixture, CheckQuote_2) {
     replyGenerator.handleRegister("qwe", Auth::encode64("q"));
     auto id2 = handleLogin(replyGenerator, "qwe", "q")["Id"];
 
-    ASSERT_EQ("Last completed sell cost: None, last completed buy cost: None", replyGenerator.handleQuote());
+    ASSERT_EQ("Last completed sell cost: None, last completed buy cost: None",
+              replyGenerator.handleQuote());
+}
+
+// Проверка отмены заявки если она на вершине кучи
+TEST_F(ReplyGeneratorFixture, CheckCancel_1) {
+    ReplyGenerator replyGenerator(core);
+
+    replyGenerator.handleRegister("asd", Auth::encode64("q"));
+    auto id1 = handleLogin(replyGenerator, "asd", "q")["Id"];
+
+    replyGenerator.handleTransaction(id1, 100, 50.0, Requests::Buy);
+    replyGenerator.handleTransaction(id1, 50, 80.0, Requests::Sell);
+    replyGenerator.handleTransaction(id1, 60, 60.0, Requests::Buy);
+    auto orderId1 = core.getClientsInfo().at(id1).getActiveOrders().at(0);
+    auto orderId2 = core.getClientsInfo().at(id1).getActiveOrders().at(1);
+    auto orderId3 = core.getClientsInfo().at(id1).getActiveOrders().at(2);
+    replyGenerator.handleCancel(orderId2);
+
+    ASSERT_EQ(core.getClientsInfo().at(id1).getActiveOrders().size(), 2);
+    ASSERT_EQ(core.getClientsInfo().at(id1).getActiveOrders().at(0), orderId1);
+    ASSERT_FALSE(core.getOrderKeeper().get(orderId2)->isActiveOrder());
+    ASSERT_EQ(core.getClientsInfo().at(id1).getActiveOrders().at(1), orderId3);
+}
+
+// Проверка отмены заявки если она НЕ на вершине кучи
+TEST_F(ReplyGeneratorFixture, CheckCancel_2) {
+    ReplyGenerator replyGenerator(core);
+
+    replyGenerator.handleRegister("asd", Auth::encode64("q"));
+    auto id1 = handleLogin(replyGenerator, "asd", "q")["Id"];
+    replyGenerator.handleRegister("asdd", Auth::encode64("q"));
+    auto id2 = handleLogin(replyGenerator, "asdd", "q")["Id"];
+
+    auto orderId1 = core.createOrder(id1, 10, 60.0, true);
+    auto orderId2 = core.createOrder(id1, 10, 70.0, true);
+    auto orderId3 = core.createOrder(id1, 10, 80.0, true);
+    
+    auto otherOrderId1 = core.createOrder(id2, 10, 60.0, false);
+    auto otherOrderId2 = core.createOrder(id2, 10, 70.0, false);
+    auto otherOrderId3 = core.createOrder(id2, 10, 80.0, false);
+
+    ASSERT_EQ("Order succesfully canceled", replyGenerator.handleCancel(orderId2));
+
+    core.match();
+
+    ASSERT_EQ(core.getClientsInfo().at(id1).getActiveOrders().size(), 1);
+    ASSERT_EQ(core.getClientsInfo().at(id1).getActiveOrders().at(0), orderId1);
+    ASSERT_TRUE(core.getOrderKeeper().get(orderId1)->isActiveOrder());
+    ASSERT_FALSE(core.getOrderKeeper().get(orderId2)->isActiveOrder());
+    ASSERT_FALSE(core.getOrderKeeper().get(orderId3)->isActiveOrder());
+
+    ASSERT_EQ(core.getClientsInfo().at(id2).getActiveOrders().size(), 2);
+    ASSERT_EQ(core.getClientsInfo().at(id2).getActiveOrders().at(0), otherOrderId2);
+    ASSERT_EQ(core.getClientsInfo().at(id2).getActiveOrders().at(1), otherOrderId3);
+    ASSERT_TRUE(core.getOrderKeeper().get(otherOrderId2)->isActiveOrder());
+    ASSERT_TRUE(core.getOrderKeeper().get(otherOrderId3)->isActiveOrder());
+}
+
+// Проверка если такой заявки нет
+TEST_F(ReplyGeneratorFixture, CheckCancel_3) {
+    ReplyGenerator replyGenerator(core);
+
+    replyGenerator.handleRegister("asd", Auth::encode64("q"));
+    auto id1 = handleLogin(replyGenerator, "asd", "q")["Id"];
+
+    auto orderId1 = core.createOrder(id1, 10, 60.0, true);
+    
+    ASSERT_EQ("No order found", replyGenerator.handleCancel(orderId1 + "1"));
 }

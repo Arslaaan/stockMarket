@@ -51,6 +51,8 @@ void Session::handle_read(const boost::system::error_code &error,
                     reply = replyGenerator.handleActive(userId);
                 } else if (reqType == Requests::Quote) {
                     reply = replyGenerator.handleQuote();
+                } else if (reqType == Requests::Cancel) {
+                    reply = replyGenerator.handleCancel(j["Message"]);
                 }
             }
         }

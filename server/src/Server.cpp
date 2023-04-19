@@ -20,14 +20,15 @@ Server::Server(boost::asio::io_service &io_service)
 
 void Server::handle_accept(Session *new_session,
                            const boost::system::error_code &error) {
-    if (!error) {
-        new_session->start();
-        new_session = new Session(io_service_);
-        acceptor_.async_accept(
-            new_session->socket(),
-            boost::bind(&Server::handle_accept, this, new_session,
-                        boost::asio::placeholders::error));
-    } else {
+    if (error) {
         delete new_session;
+        return;
     }
+    
+    new_session->start();
+    new_session = new Session(io_service_);
+    acceptor_.async_accept(
+        new_session->socket(),
+        boost::bind(&Server::handle_accept, this, new_session,
+                    boost::asio::placeholders::error));
 }
