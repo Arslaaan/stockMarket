@@ -49,10 +49,11 @@ void Client::balance() {
     std::string answer = ReadMessage();
     try {
         auto json = nlohmann::json::parse(answer);
-        std::cout << "Current balance: [" << Currency::USD << ": "
-                  << json[Currency::USD] << "] "
-                  << "[" << Currency::RUR << ": " << json[Currency::RUR] << "]"
-                  << std::endl;
+        std::cout << std::setprecision(2) << std::fixed << "Current balance: ["
+                  << Currency::USD << ": " << json[Currency::USD].get<double>()
+                  << "] "
+                  << "[" << Currency::RUR << ": "
+                  << json[Currency::RUR].get<double>() << "]" << std::endl;
     } catch (const std::exception &e) {
         std::cout << "Server: " << answer << std::endl;
     }
@@ -83,7 +84,7 @@ void Client::history() {
             std::chrono::system_clock::time_point closeTime =
                 TimeUtils::durationAsTimePoint(
                     elem[OrderFields::OpenTime].get<std::string>());
-            std::cout << "\t"
+            std::cout << std::setprecision(2) << std::fixed << "\t"
                       << "Time open/close: ["
                       << TimeUtils::getTimeAsStr(openTime) << " - "
                       << TimeUtils::getTimeAsStr(closeTime) << "], order: ["
@@ -111,7 +112,8 @@ void Client::active() {
             std::chrono::system_clock::time_point openTime =
                 TimeUtils::durationAsTimePoint(
                     elem[OrderFields::OpenTime].get<std::string>());
-            std::cout << "orderId: {" << elem[OrderFields::OrderId] << "} - "
+            std::cout << std::setprecision(2) << std::fixed << "orderId: {"
+                      << elem[OrderFields::OrderId] << "} - "
                       << "time open: [" << TimeUtils::getTimeAsStr(openTime)
                       << "], operation: [" << operationType << " " << amount
                       << " USD by cost: " << cost << "]" << std::endl;

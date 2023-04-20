@@ -2,9 +2,6 @@
 
 #include <gtest/gtest.h>
 
-// #include <chrono>
-// #include <thread>
-
 class ReplyGeneratorFixture : public ::testing::Test {
    public:
     Core core;
