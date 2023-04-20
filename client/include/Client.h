@@ -6,8 +6,8 @@
 #include <string>
 
 #include "Common.hpp"
-#include "json.hpp"
 #include "TimeUtils.h"
+#include "json.hpp"
 
 using boost::asio::ip::tcp;
 
@@ -44,7 +44,7 @@ class Client {
     std::string ReadMessage();
 
     std::string name;
-    std::string auth;
-    std::string id = "0";
+    std::string auth;  // токен для авторизации
+    std::string id = "0";  // в начале инициализируем нулем
     tcp::socket aSocket;
 };

@@ -3,6 +3,7 @@
 #include <chrono>
 #include <string>
 
+// Вся информация о заявке
 class Order {
    public:
     Order(const std::string& id_, const std::string& clientId_, size_t amount_,
@@ -14,7 +15,9 @@ class Order {
     void setAmount(size_t newAmount);
     double getCost() const;
     bool isBuyOrder() const;
+    // Активная ли заявка
     bool isActiveOrder() const;
+    // Сделать заявку неактивной
     void deactivate();
 
    private:

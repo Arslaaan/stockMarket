@@ -11,11 +11,13 @@ class Trade {
     const std::string& getSrcOrder() const;
     const std::string& getDstOrder() const;
     size_t getAmountTraded() const;
+    /// @return Время совершения сделки
     std::chrono::time_point<std::chrono::system_clock> getTradeTime() const;
 
    private:
-    std::string uuidSrc_;
-    std::string uuidDst_;
+    std::string uuidSrc_;  // orderId продающего
+    std::string uuidDst_;  // orderId покупающего
     size_t amountTraded_;  // сколько валюты перетекло в результате сделки
-    std::chrono::time_point<std::chrono::system_clock> tradeTime;  // время совершения сделки
+    std::chrono::time_point<std::chrono::system_clock>
+        tradeTime;  // время совершения сделки
 };

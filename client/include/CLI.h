@@ -29,6 +29,7 @@ class CLI {
     };
     CLI(std::unique_ptr<Client>& client_);
 
+    /// @brief Исполняет команду
     void Run(const std::string& cmd);
     void ShowHelp();
 
@@ -63,6 +64,8 @@ class CLI {
         {EXIT, {"Exit: Exit client", "exit"}},
     };
 
+    
+    /// @brief Открывает новую заявку
     void OpenOrder(Commands cmd,
                    const boost::tokenizer<boost::char_separator<char>>& tokens);
 

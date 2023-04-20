@@ -17,8 +17,7 @@
 
 class Core {
    public:
-    void registerNewUser(const std::string& aUserName,
-                                const std::string& auth);
+    void registerNewUser(const std::string& aUserName, const std::string& auth);
 
     // Запрос ID клиента по имени
     std::optional<std::string> getUserId(const std::string& aUserName);
@@ -51,20 +50,19 @@ class Core {
                           const std::string& tradeId, bool sellCurrency,
                           size_t amount, double cost);
     void closeOrderPartially(const std::unique_ptr<Order>& order,
-                              size_t amountExchanged);
+                             size_t amountExchanged);
     void closeOrder(const std::unique_ptr<Order>& order);
 
     // <UserName, UserId>
     std::map<std::string, size_t> mUserNames;
     // userId -> clientInfo
     std::unordered_map<std::string, ClientInfo> clientsInfo;
-    
 
     OrderKeeper orderKeeper;
-    NotificationService notificationService;
+    // NotificationService notificationService;
     TradeHistory tradeHistory;
     boost::hash<std::string> hasher;
-    double bestCost; // цена в последней сделке
+    double bestCost;  // цена в последней сделке
 
     std::priority_queue<double, std::vector<double>,
                         std::less<>>

@@ -41,6 +41,7 @@ static std::string SELL = "s";
 #include <boost/archive/iterators/transform_width.hpp>
 
 namespace Auth {
+    // реализация base64
 static std::string decode64(const std::string &val) {
     using namespace boost::archive::iterators;
     using It =
