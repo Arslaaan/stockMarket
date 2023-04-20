@@ -77,18 +77,18 @@ void Client::history() {
             std::string operationType =
                 elem[OrderFields::OperationType] == Operation::BUY ? "buy"
                                                                    : "sell";
-            std::time_t openTime = elem[OrderFields::OpenTime].get<time_t>();
-            std::string openTimeString = std::ctime(&openTime);
-            openTimeString.pop_back();
-            std::time_t closeTime = elem[OrderFields::CloseTime].get<time_t>();
-            std::string closeTimeString = std::ctime(&closeTime);
-            closeTimeString.pop_back();
-
+            std::chrono::system_clock::time_point openTime =
+                TimeUtils::durationAsTimePoint(
+                    elem[OrderFields::OpenTime].get<std::string>());
+            std::chrono::system_clock::time_point closeTime =
+                TimeUtils::durationAsTimePoint(
+                    elem[OrderFields::OpenTime].get<std::string>());
             std::cout << "\t"
-                      << "Time open/close: [" << openTimeString << " - "
-                      << closeTimeString << "], order: [" << operationType
-                      << " " << amount << " USD by cost: " << cost << "]"
-                      << std::endl;
+                      << "Time open/close: ["
+                      << TimeUtils::getTimeAsStr(openTime) << " - "
+                      << TimeUtils::getTimeAsStr(closeTime) << "], order: ["
+                      << operationType << " " << amount
+                      << " USD by cost: " << cost << "]" << std::endl;
         }
     } catch (const std::exception &e) {
         std::cout << "Server: " << answer << std::endl;
@@ -108,13 +108,12 @@ void Client::active() {
             std::string operationType =
                 elem[OrderFields::OperationType] == Operation::BUY ? "buy"
                                                                    : "sell";
-            std::time_t openTime = elem[OrderFields::OpenTime].get<time_t>();
-            std::string openTimeString = std::ctime(&openTime);
-            openTimeString.pop_back();
-
+            std::chrono::system_clock::time_point openTime =
+                TimeUtils::durationAsTimePoint(
+                    elem[OrderFields::OpenTime].get<std::string>());
             std::cout << "orderId: {" << elem[OrderFields::OrderId] << "} - "
-                      << "time open: [" << openTimeString << "], operation: ["
-                      << operationType << " " << amount
+                      << "time open: [" << TimeUtils::getTimeAsStr(openTime)
+                      << "], operation: [" << operationType << " " << amount
                       << " USD by cost: " << cost << "]" << std::endl;
         }
     } catch (const std::exception &e) {

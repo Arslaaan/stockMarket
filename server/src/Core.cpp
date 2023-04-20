@@ -36,26 +36,25 @@ void Core::match() {
     while (!buyHeap.empty() && !sellHeap.empty() &&
            (buyHeap.top() - sellHeap.top() >= 0)) {
         if (!buyOrders.count(buyHeap.top())) {
-            // значит уже нет заявки с cost == buyHeap.top() тк ее отменили,
-            // это единственный вариант
+            // если не находим - значит заявку отменили
             buyHeap.pop();
             continue;
         }
         if (!sellOrders.count(sellHeap.top())) {
-            // значит уже нет заявки с cost == sellHeap.top() тк ее отменили,
-            // это единственный вариант
+            // если не находим - значит заявку отменили
             sellHeap.pop();
             continue;
         }
         const auto &sellOrder =
             orderKeeper.get(sellOrders.at(sellHeap.top()).getFirst());
-            const auto &buyOrder = orderKeeper.get(buyOrders.at(buyHeap.top()).getFirst());
+        const auto &buyOrder =
+            orderKeeper.get(buyOrders.at(buyHeap.top()).getFirst());
         trade(sellOrder, buyOrder);
     }
 }
 
 void Core::removeOldOrder(const std::unique_ptr<Order> &order) {
-    updateOrderFull(order);
+    closeOrder(order);
     clientsInfo.at(order->getClientId()).removeOrder(order->getId());
 }
 
@@ -88,22 +87,27 @@ void Core::trade(const std::unique_ptr<Order> &orderSrc,
     size_t amount;
     if (orderDst->getAmount() > orderSrc->getAmount()) {
         amount = orderSrc->getAmount();
-        updateOrderFull(orderSrc);
-        updateOrderPartially(orderDst, amount);
+        closeOrder(orderSrc);
+        closeOrderPartially(orderDst, amount);
     } else if (orderDst->getAmount() < orderSrc->getAmount()) {
         amount = orderDst->getAmount();
-        updateOrderFull(orderDst);
-        updateOrderPartially(orderSrc, amount);
+        closeOrder(orderDst);
+        closeOrderPartially(orderSrc, amount);
     } else {
         amount = orderSrc->getAmount();
-        updateOrderFull(orderSrc);
-        updateOrderFull(orderDst);
+        closeOrder(orderSrc);
+        closeOrder(orderDst);
     }
-    lastBuy = orderDst->getCost();
-    lastSell = orderSrc->getCost();
     const auto &tradeId = tradeHistory.add(orderSrc, orderDst, amount);
-    updateClientInfo(orderSrc, tradeId, true, amount);
-    updateClientInfo(orderDst, tradeId, false, amount);
+    bestCost =
+        std::min(orderSrc, orderDst,
+                 [](const std::unique_ptr<Order> &src,
+                    const std::unique_ptr<Order> &dst) {
+                     return src->getTimestamp() < dst->getTimestamp();
+                 })
+            ->getCost();
+    updateClientInfo(orderSrc, tradeId, true, amount, bestCost);
+    updateClientInfo(orderDst, tradeId, false, amount, bestCost);
 }
 
 /// @brief Обновить информацию о клиенте
@@ -111,16 +115,17 @@ void Core::trade(const std::unique_ptr<Order> &orderSrc,
 /// @param tradeId
 /// @param sellCurrency true - продаем валюту, иначе покупаем
 /// @param amount количество валюты для обмена
+/// @param cost по какой цене меняют валюту
 void Core::updateClientInfo(const std::unique_ptr<Order> &order,
                             const std::string &tradeId, bool sellCurrency,
-                            double amount) {
+                            size_t amount, double cost) {
     ClientInfo &clientInfo = clientsInfo.at(order->getClientId());
     if (sellCurrency) {
-        clientInfo.addToBalance(Currency::RUR, amount * order->getCost());
+        clientInfo.addToBalance(Currency::RUR, amount * cost);
         clientInfo.takeFromBalance(Currency::USD, amount);
     } else {
         clientInfo.addToBalance(Currency::USD, amount);
-        clientInfo.takeFromBalance(Currency::RUR, amount * order->getCost());
+        clientInfo.takeFromBalance(Currency::RUR, amount * cost);
     }
     clientInfo.historyUpdate(tradeId);
     if (!order->isActiveOrder()) {
@@ -130,22 +135,23 @@ void Core::updateClientInfo(const std::unique_ptr<Order> &order,
 }
 
 // Частично реализует предложение в заявке
-void Core::updateOrderPartially(const std::unique_ptr<Order> &order,
-                                size_t amountTraded) {
+void Core::closeOrderPartially(const std::unique_ptr<Order> &order,
+                               size_t amountTraded) {
     order->setAmount(order->getAmount() - amountTraded);
 }
 
 // Полностью реализует предложение в заявке
-void Core::updateOrderFull(const std::unique_ptr<Order> &order) {
+void Core::closeOrder(const std::unique_ptr<Order> &order) {
     auto &mapOfOrders = order->isBuyOrder() ? buyOrders : sellOrders;
 
     EqualCostOrders &equalCostOrders = mapOfOrders.at(order->getCost());
     equalCostOrders.popFirst();
     if (equalCostOrders.empty()) {
         mapOfOrders.erase(order->getCost());
-        // актуализируем соответствующую heap после закрытия заявки, если можем
-        // не всегда это возможно, тк клиент может отменить заявку cost которой
-        // не на вершине heap в таком случае она актуализируется позже при match
+        // актуализируем соответствующую heap после закрытия заявки, если можем.
+        // Это не всегда возможно, тк клиент может отменить заявку cost которой
+        // не на вершине heap, в таком случае она актуализируется позже при
+        // Core::match
         if (order->isBuyOrder()) {
             if (buyHeap.top() == order->getCost()) {
                 buyHeap.pop();
@@ -155,8 +161,6 @@ void Core::updateOrderFull(const std::unique_ptr<Order> &order) {
                 sellHeap.pop();
             }
         }
-        // order->isBuyOrder() ? buyHeap.pop() : sellHeap.pop(); // тут проблема
-        // тк при отмене заявки она необязательно на вершине
     }
     order->deactivate();
 }
@@ -194,17 +198,9 @@ const TradeHistory &Core::getTradeHistory() const { return tradeHistory; }
 
 const std::string Core::getQuotes() const {
     std::stringstream ss;
-    ss << "Last completed sell cost: ";
-    if (lastSell > 0.0) {
-        ss << lastSell << " " << Currency::RUR;
-    } else {
-        ss << "None";
-    }
-    ss << ", ";
-
-    ss << "last completed buy cost: ";
-    if (lastBuy > 0.0) {
-        ss << lastBuy << " " << Currency::RUR;
+    ss << "Last trade cost: ";
+    if (bestCost > 0.0) {
+        ss << bestCost << " " << Currency::RUR;
     } else {
         ss << "None";
     }

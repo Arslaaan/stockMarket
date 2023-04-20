@@ -65,6 +65,7 @@ ADD_EXECUTABLE(
 ADD_EXECUTABLE(
     ClientRun
 
+    ${CLIENT}/include/TimeUtils.h
     ${CLIENT}/include/Client.h
     ${CLIENT}/src/Client.cpp
     ${CLIENT}/include/CLI.h

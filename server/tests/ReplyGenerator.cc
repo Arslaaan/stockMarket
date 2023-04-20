@@ -80,7 +80,7 @@ TEST_F(ReplyGeneratorFixture, HandleBalance_1) {
     ASSERT_EQ(json1[Currency::RUR].get<double>(), -50);
     ASSERT_EQ(json1[Currency::USD].get<double>(), 1);
 
-    ASSERT_EQ(json2[Currency::RUR].get<double>(), 49);
+    ASSERT_EQ(json2[Currency::RUR].get<double>(), 50);
     ASSERT_EQ(json2[Currency::USD].get<double>(), -1);
 
     ASSERT_EQ(json3[Currency::RUR].get<double>(), 0);
@@ -121,7 +121,7 @@ TEST_F(ReplyGeneratorFixture, HandleHistory_1) {
     ASSERT_EQ(json1.at(1)[OrderFields::OperationType], Operation::BUY);
 
     ASSERT_EQ(json2.at(0)[OrderFields::Amount].get<size_t>(), 5u);
-    ASSERT_EQ(json2.at(0)[OrderFields::Cost].get<double>(), 50.0);
+    ASSERT_EQ(json2.at(0)[OrderFields::Cost].get<double>(), 51.0);
     ASSERT_EQ(json2.at(0)[OrderFields::OperationType], Operation::SELL);
 
     ASSERT_EQ(json2.at(1)[OrderFields::Amount].get<size_t>(), 4u);
@@ -207,7 +207,7 @@ TEST_F(ReplyGeneratorFixture, CheckQuote_1) {
     replyGenerator.handleTransaction(id2, 4, 50, Requests::Sell);
 
     ASSERT_EQ(
-        "Last completed sell cost: 50 RUR, last completed buy cost: 51 RUR",
+        "Last trade cost: 51 RUR",
         replyGenerator.handleQuote());
 }
 
@@ -221,7 +221,7 @@ TEST_F(ReplyGeneratorFixture, CheckQuote_2) {
     replyGenerator.handleRegister("qwe", Auth::encode64("q"));
     auto id2 = handleLogin(replyGenerator, "qwe", "q")["Id"];
 
-    ASSERT_EQ("Last completed sell cost: None, last completed buy cost: None",
+    ASSERT_EQ("Last trade cost: None",
               replyGenerator.handleQuote());
 }
 

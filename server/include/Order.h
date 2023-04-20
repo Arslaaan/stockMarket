@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ctime>
+#include <chrono>
 #include <string>
 
 class Order {
@@ -9,7 +9,7 @@ class Order {
           double cost, bool isBuy_);
     const std::string& getId() const;
     const std::string& getClientId() const;
-    std::time_t getTimestamp() const;
+    std::chrono::time_point<std::chrono::system_clock> getTimestamp() const;
     size_t getAmount() const;
     void setAmount(size_t newAmount);
     double getCost() const;
@@ -18,11 +18,12 @@ class Order {
     void deactivate();
 
    private:
-    std::string id;              // уникальный id заявки
-    std::string clientId;        // создатель заявки
-    std::time_t timestamp;       // время создания
-    size_t amount;               // количество валюты
-    double cost;  // стоимость единицы валюты
+    std::string id;        // уникальный id заявки
+    std::string clientId;  // создатель заявки
+    std::chrono::time_point<std::chrono::system_clock>
+        timestamp;  // время создания
+    size_t amount;  // количество валюты
+    double cost;    // стоимость единицы валюты
     bool isBuy;  // true - это заявка на покупку, иначе - продажа
     bool isActive;  // true - это активная заявка, иначе - совершенная
 };

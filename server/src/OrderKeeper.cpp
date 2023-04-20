@@ -14,13 +14,13 @@ const std::unique_ptr<Order>& OrderKeeper::get(const std::string& uuid) {
 
 void OrderKeeper::remove(const std::string& uuid) { orders.erase(uuid); }
 
-const std::unique_ptr<Order>& OrderKeeper::get(
+std::pair<const Order*, const Order*> OrderKeeper::get(
     const std::unique_ptr<Trade>& trade, const std::string userId) {
-    const auto& orderSrc = orders[trade->getSrcOrder()];
-    const auto& orderDst = orders[trade->getDstOrder()];
+    const auto& orderSrc = orders.at(trade->getSrcOrder());
+    const auto& orderDst = orders.at(trade->getDstOrder());
     if (orderSrc->getClientId() == userId) {
-        return orderSrc;
+        return std::make_pair<>(orderSrc.get(), orderDst.get());
     } else {
-        return orderDst;
+        return std::make_pair<>(orderDst.get(), orderSrc.get());
     }
 }

@@ -1,12 +1,13 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <ctime>
+#include <chrono>
 #include <iostream>
 #include <string>
 
 #include "Common.hpp"
 #include "json.hpp"
+#include "TimeUtils.h"
 
 using boost::asio::ip::tcp;
 

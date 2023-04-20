@@ -249,7 +249,7 @@ TEST_F(TestFixture, ClientInfo_1) {
     ASSERT_EQ(clientInfo1.getActiveOrders().size(), 0);
 
     auto clientInfo2 = core.getClientsInfo().at("2");
-    ASSERT_EQ(clientInfo2.getBalance(Currency::RUR), 130);
+    ASSERT_EQ(clientInfo2.getBalance(Currency::RUR), 135);
     ASSERT_EQ(clientInfo2.getBalance(Currency::USD), -2);
     ASSERT_EQ(core.getTradeHistory()
                   .get(clientInfo2.getHistory().at(0))

@@ -49,10 +49,10 @@ class Core {
                const std::unique_ptr<Order>& orderDst);
     void updateClientInfo(const std::unique_ptr<Order>& order,
                           const std::string& tradeId, bool sellCurrency,
-                          double amount);
-    void updateOrderPartially(const std::unique_ptr<Order>& order,
+                          size_t amount, double cost);
+    void closeOrderPartially(const std::unique_ptr<Order>& order,
                               size_t amountExchanged);
-    void updateOrderFull(const std::unique_ptr<Order>& order);
+    void closeOrder(const std::unique_ptr<Order>& order);
 
     // <UserName, UserId>
     std::map<std::string, size_t> mUserNames;
@@ -64,8 +64,7 @@ class Core {
     NotificationService notificationService;
     TradeHistory tradeHistory;
     boost::hash<std::string> hasher;
-    double lastBuy; // цена покупки в последней сделке
-    double lastSell; // цена продажи в последней сделке
+    double bestCost; // цена в последней сделке
 
     std::priority_queue<double, std::vector<double>,
                         std::less<>>
